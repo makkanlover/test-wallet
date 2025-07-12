@@ -34,6 +34,24 @@ export const updateBalance = createAsyncThunk(
   }
 )
 
+export const connectExternalWallet = createAsyncThunk(
+  'wallet/connectExternal',
+  async ({ network }: { network: Network }, { rejectWithValue }) => {
+    try {
+      const walletService = WalletService.getInstance()
+      const result = await walletService.connectExternalWallet(network)
+      
+      return {
+        address: result.address,
+        provider: result.provider,
+        connectionType: 'external' as const
+      }
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : '外部ウォレット接続に失敗しました')
+    }
+  }
+)
+
 export const disconnectWallet = createAsyncThunk(
   'wallet/disconnect',
   async (_, { rejectWithValue }) => {

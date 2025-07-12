@@ -1,5 +1,6 @@
 import { ethers } from 'ethers'
 import { WalletService } from './walletService'
+import { HardhatService } from './hardhatService'
 
 export interface ContractDeployParams {
   type: 'erc20' | 'erc721'
@@ -22,9 +23,11 @@ export interface DeployedContract {
 export class ContractService {
   private static instance: ContractService
   private walletService: WalletService
+  private hardhatService: HardhatService
 
   constructor() {
     this.walletService = WalletService.getInstance()
+    this.hardhatService = HardhatService.getInstance()
   }
 
   static getInstance(): ContractService {
@@ -35,45 +38,106 @@ export class ContractService {
   }
 
   async deployERC20Contract(params: ContractDeployParams): Promise<DeployedContract> {
-    const wallet = this.walletService.getWallet()
-    if (!wallet) {
+    const signer = this.walletService.getSigner()
+    if (!signer) {
       throw new Error('ウォレットが接続されていません')
     }
 
-    // SimpleERC20コントラクトのABI（コンパイル後に自動生成されるものの簡略版）
-    const contractABI = [
-      "constructor(string memory name, string memory symbol, uint8 decimals_, uint256 totalSupply, address owner)"
-    ]
-
-    // バイトコード（実際の環境では artifacts から読み込む）
-    const contractBytecode = "0x608060405234801561001057600080fd5b5..." // 実際のバイトコードはartifactsから取得
-
     try {
-      const decimals = params.decimals || 18
-      const totalSupply = params.totalSupply || "1000000"
-      const owner = await wallet.getAddress()
+      // コントラクトがコンパイルされているか確認
+      const isCompiled = await this.hardhatService.isContractCompiled('SimpleERC20')
+      if (!isCompiled) {
+        throw new Error('SimpleERC20コントラクトがコンパイルされていません。npx hardhat compile を実行してください。')
+      }
 
-      // シンプルなERC20コントラクトの作成（実際の実装では artifacts を使用）
-      const factory = new ethers.ContractFactory(contractABI, contractBytecode, wallet)
+      // artifactsからコントラクト情報を読み込み
+      const artifact = await this.hardhatService.loadContractArtifact('SimpleERC20')
       
-      // テスト用の簡易デプロイ（実際の実装ではartifactsのバイトコードを使用）
-      throw new Error("コントラクトデプロイは開発中です。Hardhatでのコンパイルとartifacts生成が必要です。")
+      const decimals = params.decimals || 18
+      const totalSupply = ethers.parseUnits(params.totalSupply || "1000000", decimals)
+      const owner = await signer.getAddress()
 
+      // コントラクトファクトリを作成
+      const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer)
+      
+      // コントラクトをデプロイ
+      const contract = await factory.deploy(
+        params.name,
+        params.symbol,
+        decimals,
+        totalSupply,
+        owner
+      )
+
+      // デプロイを待機
+      await contract.waitForDeployment()
+      const address = await contract.getAddress()
+      const deployTransaction = contract.deploymentTransaction()
+      
+      if (!deployTransaction) {
+        throw new Error('デプロイトランザクションが見つかりません')
+      }
+
+      return {
+        address,
+        transactionHash: deployTransaction.hash,
+        type: 'erc20',
+        name: params.name,
+        symbol: params.symbol,
+        owner
+      }
     } catch (error) {
       throw new Error(`ERC20コントラクトデプロイに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   async deployERC721Contract(params: ContractDeployParams): Promise<DeployedContract> {
-    const wallet = this.walletService.getWallet()
-    if (!wallet) {
+    const signer = this.walletService.getSigner()
+    if (!signer) {
       throw new Error('ウォレットが接続されていません')
     }
 
     try {
-      // 実際の実装では artifacts から読み込む
-      throw new Error("コントラクトデプロイは開発中です。Hardhatでのコンパイルとartifacts生成が必要です。")
+      // コントラクトがコンパイルされているか確認
+      const isCompiled = await this.hardhatService.isContractCompiled('SimpleERC721')
+      if (!isCompiled) {
+        throw new Error('SimpleERC721コントラクトがコンパイルされていません。npx hardhat compile を実行してください。')
+      }
 
+      // artifactsからコントラクト情報を読み込み
+      const artifact = await this.hardhatService.loadContractArtifact('SimpleERC721')
+      
+      const owner = await signer.getAddress()
+      const baseURI = params.baseURI || 'https://example.com/metadata/'
+
+      // コントラクトファクトリを作成
+      const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer)
+      
+      // コントラクトをデプロイ
+      const contract = await factory.deploy(
+        params.name,
+        params.symbol,
+        baseURI,
+        owner
+      )
+
+      // デプロイを待機
+      await contract.waitForDeployment()
+      const address = await contract.getAddress()
+      const deployTransaction = contract.deploymentTransaction()
+      
+      if (!deployTransaction) {
+        throw new Error('デプロイトランザクションが見つかりません')
+      }
+
+      return {
+        address,
+        transactionHash: deployTransaction.hash,
+        type: 'erc721',
+        name: params.name,
+        symbol: params.symbol,
+        owner
+      }
     } catch (error) {
       throw new Error(`ERC721コントラクトデプロイに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -85,14 +149,65 @@ export class ContractService {
     estimatedFee: string
   }> {
     const provider = this.walletService.getProvider()
+    const signer = this.walletService.getSigner()
     
-    if (!provider) {
-      throw new Error('プロバイダーが初期化されていません')
+    if (!provider || !signer) {
+      throw new Error('プロバイダーまたはウォレットが初期化されていません')
     }
 
     try {
-      // ガス見積もりの仮実装
-      const gasLimit = ethers.getBigInt("500000") // デプロイには通常多くのガスが必要
+      const contractName = params.type === 'erc20' ? 'SimpleERC20' : 'SimpleERC721'
+      
+      // コントラクトがコンパイルされているか確認
+      const isCompiled = await this.hardhatService.isContractCompiled(contractName)
+      if (!isCompiled) {
+        // コンパイルされていない場合は仮の値を返す
+        const gasLimit = ethers.getBigInt("500000")
+        const feeData = await provider.getFeeData()
+        const gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
+        
+        return {
+          gasLimit: gasLimit.toString(),
+          gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
+          estimatedFee: ethers.formatEther(gasLimit * gasPrice)
+        }
+      }
+
+      // artifactsからコントラクト情報を読み込み
+      const artifact = await this.hardhatService.loadContractArtifact(contractName)
+      const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer)
+      
+      let deployData: string
+      if (params.type === 'erc20') {
+        const decimals = params.decimals || 18
+        const totalSupply = ethers.parseUnits(params.totalSupply || "1000000", decimals)
+        const owner = await signer.getAddress()
+        
+        deployData = factory.interface.encodeDeploy([
+          params.name,
+          params.symbol,
+          decimals,
+          totalSupply,
+          owner
+        ])
+      } else {
+        const owner = await signer.getAddress()
+        const baseURI = params.baseURI || 'https://example.com/metadata/'
+        
+        deployData = factory.interface.encodeDeploy([
+          params.name,
+          params.symbol,
+          baseURI,
+          owner
+        ])
+      }
+
+      // ガス見積もり
+      const gasLimit = await provider.estimateGas({
+        data: artifact.bytecode + deployData.slice(2),
+        from: await signer.getAddress()
+      })
+      
       const feeData = await provider.getFeeData()
       const gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
       
@@ -141,6 +256,18 @@ export class ContractService {
     return {
       isValid: errors.length === 0,
       errors
+    }
+  }
+
+  async getCompiledContracts(): Promise<string[]> {
+    return await this.hardhatService.getAllCompiledContracts()
+  }
+
+  async compileContracts(): Promise<void> {
+    try {
+      await this.hardhatService.compileContracts()
+    } catch (error) {
+      throw new Error(`コントラクトコンパイルに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 

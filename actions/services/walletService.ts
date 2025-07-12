@@ -4,8 +4,9 @@ import { getEnvVar } from '../utils/env'
 
 export class WalletService {
   private static instance: WalletService
-  private provider: ethers.JsonRpcProvider | null = null
+  private provider: ethers.JsonRpcProvider | ethers.BrowserProvider | null = null
   private wallet: ethers.Wallet | null = null
+  private externalSigner: ethers.JsonRpcSigner | null = null
 
   static getInstance(): WalletService {
     if (!WalletService.instance) {
@@ -20,6 +21,58 @@ export class WalletService {
       throw new Error('秘密鍵が.envファイルに設定されていません。PRIVATE_KEYを設定してアプリを再起動してください。');
     }
     return privateKey;
+  }
+
+  async connectExternalWallet(network: Network): Promise<{
+    address: string
+    provider: ethers.BrowserProvider
+  }> {
+    try {
+      if (typeof window === 'undefined' || !window.ethereum) {
+        throw new Error('MetaMaskが見つかりません。ブラウザでMetaMaskをインストールしてください。')
+      }
+
+      const ethereum = window.ethereum
+      this.provider = new ethers.BrowserProvider(ethereum)
+      
+      await ethereum.request({ method: 'eth_requestAccounts' })
+      
+      const chainId = `0x${network.chainId.toString(16)}`
+      try {
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId }],
+        })
+      } catch (switchError: any) {
+        if (switchError.code === 4902) {
+          await ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId,
+              chainName: network.name,
+              rpcUrls: [network.rpcUrl],
+              nativeCurrency: {
+                name: network.currency,
+                symbol: network.currency,
+                decimals: 18
+              }
+            }],
+          })
+        } else {
+          throw switchError
+        }
+      }
+
+      this.externalSigner = await this.provider.getSigner()
+      const address = await this.externalSigner.getAddress()
+      
+      return {
+        address,
+        provider: this.provider
+      }
+    } catch (error) {
+      throw new Error(`外部ウォレット接続に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   async connectLocalWallet(network: Network): Promise<{
@@ -83,12 +136,13 @@ export class WalletService {
   }
 
   async sendTransaction(to: string, amount: string): Promise<string> {
-    if (!this.wallet) {
+    const signer = this.wallet || this.externalSigner
+    if (!signer) {
       throw new Error('ウォレットが接続されていません')
     }
 
     try {
-      const tx = await this.wallet.sendTransaction({
+      const tx = await signer.sendTransaction({
         to,
         value: ethers.parseEther(amount)
       })
@@ -104,7 +158,8 @@ export class WalletService {
     gasPrice: string
     estimatedFee: string
   }> {
-    if (!this.wallet || !this.provider) {
+    const signer = this.wallet || this.externalSigner
+    if (!signer || !this.provider) {
       throw new Error('ウォレットまたはプロバイダーが初期化されていません')
     }
 
@@ -112,7 +167,7 @@ export class WalletService {
       const gasLimit = await this.provider.estimateGas({
         to,
         value: ethers.parseEther(amount),
-        from: await this.wallet.getAddress()
+        from: await signer.getAddress()
       })
 
       const feeData = await this.provider.getFeeData()
@@ -151,13 +206,18 @@ export class WalletService {
   disconnect(): void {
     this.provider = null
     this.wallet = null
+    this.externalSigner = null
   }
 
-  getProvider(): ethers.JsonRpcProvider | null {
+  getProvider(): ethers.JsonRpcProvider | ethers.BrowserProvider | null {
     return this.provider
   }
 
   getWallet(): ethers.Wallet | null {
     return this.wallet
+  }
+
+  getSigner(): ethers.Wallet | ethers.JsonRpcSigner | null {
+    return this.wallet || this.externalSigner
   }
 }
