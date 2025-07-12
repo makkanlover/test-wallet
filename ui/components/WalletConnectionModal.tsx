@@ -27,15 +27,27 @@ const WalletConnectionModal: React.FC<WalletConnectionModalProps> = ({ isOpen, o
   })
 
   const getEnvVar = (key: string, defaultValue: string) => {
-    if (typeof window !== 'undefined' && import.meta?.env) {
-      return import.meta.env[key] || defaultValue;
+    // ブラウザ環境での環境変数取得
+    if (typeof window !== 'undefined') {
+      // サーバーから提供される環境変数
+      const envVars = (window as any).__ENV__;
+      if (envVars && envVars[key]) {
+        return envVars[key];
+      }
+      
+      // Viteの環境変数（開発時）
+      if (import.meta?.env && import.meta.env[key]) {
+        return import.meta.env[key];
+      }
     }
+    
+    // Node.js環境（テスト等）
     return process.env[key] || defaultValue;
   };
 
   const networks = [
-    { id: 'sepolia', name: 'Ethereum Sepolia', rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/'), chainId: 11155111, currency: 'SepoliaETH' },
-    { id: 'amoy', name: 'Polygon Amoy', rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://amoy.infura.io/v3/'), chainId: 80002, currency: 'MATIC' }
+    { id: 'sepolia', name: 'Ethereum Sepolia', rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/ef0ca7db451949e8bd42c77df3160530'), chainId: 11155111, currency: 'SepoliaETH' },
+    { id: 'amoy', name: 'Polygon Amoy', rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://amoy.infura.io/v3/ef0ca7db451949e8bd42c77df3160530'), chainId: 80002, currency: 'MATIC' }
   ]
 
   const onSubmit = async (data: FormData) => {

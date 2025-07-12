@@ -14,14 +14,26 @@ export class WalletService {
   }
 
   private getEnvVar(key: string, defaultValue: string = ''): string {
-    if (typeof window !== 'undefined' && import.meta?.env) {
-      return import.meta.env[key] || defaultValue;
+    // ブラウザ環境での環境変数取得
+    if (typeof window !== 'undefined') {
+      // サーバーから提供される環境変数
+      const envVars = (window as any).__ENV__;
+      if (envVars && envVars[key]) {
+        return envVars[key];
+      }
+      
+      // Viteの環境変数（開発時）
+      if (import.meta?.env && import.meta.env[key]) {
+        return import.meta.env[key];
+      }
     }
+    
+    // Node.js環境（テスト等）
     return process.env[key] || defaultValue;
   }
 
   private getPrivateKeyFromEnv(): string {
-    const privateKey = this.getEnvVar('VITE_PRIVATE_KEY') || this.getEnvVar('PRIVATE_KEY');
+    const privateKey = this.getEnvVar('VITE_PRIVATE_KEY');
     if (!privateKey) {
       throw new Error('秘密鍵が.envファイルに設定されていません。PRIVATE_KEYを設定してアプリを再起動してください。');
     }
