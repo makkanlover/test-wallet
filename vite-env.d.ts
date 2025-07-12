@@ -1,12 +1,12 @@
-/// <reference types="vite/client" />
-
-interface ImportMetaEnv {
-  readonly VITE_ETHEREUM_RPC_URL: string
-  readonly VITE_POLYGON_RPC_URL: string
-  readonly VITE_DEFAULT_NETWORK: string
-  readonly VITE_PRIVATE_KEY: string
+interface ProcessEnv {
+  readonly ETHEREUM_RPC_URL: string
+  readonly POLYGON_RPC_URL: string
+  readonly DEFAULT_NETWORK: string
+  readonly PRIVATE_KEY: string
 }
 
-interface ImportMeta {
-  readonly env: ImportMetaEnv
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv extends ProcessEnv {}
+  }
 }

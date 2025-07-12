@@ -6,6 +6,6 @@ describe('Simple Test', () => {
   });
 
   it('should work with environment variables', () => {
-    expect(process.env.VITE_DEFAULT_NETWORK).toBe('goerli');
+    expect(process.env.DEFAULT_NETWORK).toBe('sepolia');
   });
 });

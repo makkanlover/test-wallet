@@ -123,8 +123,8 @@ describe('Basic State Management', () => {
 
   describe('Component Utilities', () => {
     it('should validate environment setup', () => {
-      expect(process.env.VITE_ETHEREUM_RPC_URL).toBe('https://goerli.infura.io/v3/test');
-      expect(process.env.VITE_DEFAULT_NETWORK).toBe('goerli');
+      expect(process.env.ETHEREUM_RPC_URL).toBe('https://sepolia.infura.io/v3/test');
+      expect(process.env.DEFAULT_NETWORK).toBe('sepolia');
     });
   });
 });

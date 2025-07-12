@@ -82,8 +82,7 @@ describe('WalletService', () => {
 
     it('環境変数に秘密鍵がない場合エラーが発生', async () => {
       // 一時的に環境変数をクリア
-      const originalKey = process.env.VITE_PRIVATE_KEY;
-      delete process.env.VITE_PRIVATE_KEY;
+      const originalKey = process.env.PRIVATE_KEY;
       delete process.env.PRIVATE_KEY;
 
       await expect(
@@ -91,7 +90,7 @@ describe('WalletService', () => {
       ).rejects.toThrow('秘密鍵が.envファイルに設定されていません');
 
       // 環境変数を復元
-      if (originalKey) process.env.VITE_PRIVATE_KEY = originalKey;
+      if (originalKey) process.env.PRIVATE_KEY = originalKey;
     });
   });
 });

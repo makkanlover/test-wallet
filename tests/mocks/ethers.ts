@@ -72,4 +72,11 @@ export const mockEthers = {
 };
 
 // vi.mockでethersライブラリ全体をモック
-vi.mock('ethers', () => mockEthers);
+vi.mock('ethers', async () => {
+  const actual = await vi.importActual('ethers');
+  return {
+    ...actual,
+    ...mockEthers,
+    ethers: mockEthers
+  };
+});

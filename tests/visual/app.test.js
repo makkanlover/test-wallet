@@ -75,19 +75,19 @@ test.beforeEach(async ({ page }) => {
       }
     };
 
-    // import.metaのモック
-    window.importMeta = {
+    // process.envのモック
+    window.process = {
       env: {
-        VITE_ETHEREUM_RPC_URL: 'https://sepolia.infura.io/v3/test',
-        VITE_POLYGON_RPC_URL: 'https://amoy.infura.io/v3/test',
-        VITE_DEFAULT_NETWORK: 'sepolia',
-        VITE_PRIVATE_KEY: '321d68ca900f2837d3c6d0020e953685afe6846ab3bfe32e137d2a40df5d167e'
+        ETHEREUM_RPC_URL: 'https://sepolia.infura.io/v3/test',
+        POLYGON_RPC_URL: 'https://amoy.infura.io/v3/test',
+        DEFAULT_NETWORK: 'sepolia',
+        PRIVATE_KEY: '321d68ca900f2837d3c6d0020e953685afe6846ab3bfe32e137d2a40df5d167e'
       }
     };
   });
 
   // アプリケーションページに移動
-  await page.goto('http://localhost:5173');
+  await page.goto('http://localhost:3000');
 });
 
 test.describe('Web3 Wallet Visual Tests (Mocked)', () => {
@@ -95,13 +95,16 @@ test.describe('Web3 Wallet Visual Tests (Mocked)', () => {
     await page.waitForLoadState('networkidle');
     
     // タイトルの確認
-    await expect(page.locator('text=ウォレット情報')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ウォレット情報' })).toBeVisible();
     
     // 未接続状態の確認
     await expect(page.locator('text=❌ 未接続')).toBeVisible();
     
     // 接続ボタンの確認
     await expect(page.locator('text=ローカルウォレット接続')).toBeVisible();
+    
+    // スクリーンショット比較
+    await expect(page).toHaveScreenshot('wallet-info-page.png');
   });
 
   test('ウォレット接続モーダルが正常に表示される', async ({ page }) => {
@@ -115,8 +118,8 @@ test.describe('Web3 Wallet Visual Tests (Mocked)', () => {
     await expect(page.locator('text=環境変数から秘密鍵を取得してローカルウォレットに接続します。')).toBeVisible();
     
     // ネットワーク選択の確認
-    await expect(page.locator('text=ネットワーク')).toBeVisible();
-    await expect(page.locator('select')).toBeVisible();
+    await expect(page.locator('label', { hasText: 'ネットワーク' })).toBeVisible();
+    await expect(page.locator('select[name="network"]')).toBeVisible();
   });
 
   test('ネットワーク選択機能', async ({ page }) => {
@@ -137,16 +140,16 @@ test.describe('Web3 Wallet Visual Tests (Mocked)', () => {
     await page.waitForLoadState('networkidle');
     
     // ナビゲーションタブの確認
-    await expect(page.locator('text=ウォレット情報')).toBeVisible();
-    await expect(page.locator('text=トランザクション')).toBeVisible();
-    await expect(page.locator('text=コントラクト')).toBeVisible();
+    await expect(page.getByRole('button', { name: '💳 ウォレット情報' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '💸 トランザクション' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '📄 コントラクト' })).toBeVisible();
   });
 
   test('トランザクションページに切り替え', async ({ page }) => {
     await page.waitForLoadState('networkidle');
     
     // トランザクションタブをクリック
-    await page.click('text=💸 トランザクション');
+    await page.getByRole('button', { name: '💸 トランザクション' }).click();
     
     // トランザクションページの表示確認
     await expect(page.locator('text=ウォレットが接続されていません')).toBeVisible();
@@ -156,10 +159,13 @@ test.describe('Web3 Wallet Visual Tests (Mocked)', () => {
     await page.waitForLoadState('networkidle');
     
     // コントラクトタブをクリック
-    await page.click('text=📄 コントラクト');
+    await page.getByRole('button', { name: '📄 コントラクト' }).click();
     
-    // コントラクトページの表示確認
-    await expect(page.locator('text=🚧 開発中の機能')).toBeVisible();
+    // ページ遷移を待つ
+    await page.waitForTimeout(3000);
+    
+    // コントラクトページの表示確認：ウォレット未接続時のメッセージを確認
+    await expect(page.getByText('コントラクトをデプロイするには、まずウォレットを接続してください。')).toBeVisible();
   });
 
   test('レスポンシブデザインの確認', async ({ page }) => {
@@ -169,7 +175,7 @@ test.describe('Web3 Wallet Visual Tests (Mocked)', () => {
     await page.waitForLoadState('networkidle');
     
     // 基本要素が表示されることを確認
-    await expect(page.locator('text=ウォレット情報')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ウォレット情報' })).toBeVisible();
     await expect(page.locator('text=❌ 未接続')).toBeVisible();
     
     // タブレットサイズに変更
@@ -177,6 +183,6 @@ test.describe('Web3 Wallet Visual Tests (Mocked)', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
     
-    await expect(page.locator('text=ウォレット情報')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ウォレット情報' })).toBeVisible();
   });
 });

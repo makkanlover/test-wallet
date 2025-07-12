@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Web3 Wallet Visual Tests', () => {
   test.beforeEach(async ({ page }) => {
     // 開発サーバーが動いている場合のURL
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:3000');
   });
 
   test('ウォレット情報ページが正常に読み込まれる', async ({ page }) => {
@@ -22,8 +22,8 @@ test.describe('Web3 Wallet Visual Tests', () => {
     await page.waitForLoadState('networkidle');
     
     // ナビゲーションの確認
-    await expect(page.locator('text=ウォレット情報')).toBeVisible();
-    await expect(page.locator('text=トランザクション')).toBeVisible();
-    await expect(page.locator('text=コントラクト')).toBeVisible();
+    await expect(page.getByRole('button', { name: '💳 ウォレット情報' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '💸 トランザクション' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '📄 コントラクト' })).toBeVisible();
   });
 });

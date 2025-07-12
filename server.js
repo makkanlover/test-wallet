@@ -30,22 +30,22 @@ const mimeTypes = {
 // 環境変数をJavaScriptとして提供するエンドポイント
 function getEnvScript() {
   const envVars = {
-    VITE_ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL || 'https://sepolia.infura.io/v3/',
-    VITE_POLYGON_RPC_URL: process.env.POLYGON_RPC_URL || 'https://amoy.infura.io/v3/',
-    VITE_DEFAULT_NETWORK: process.env.DEFAULT_NETWORK || 'sepolia',
-    VITE_PRIVATE_KEY: process.env.PRIVATE_KEY || ''
+    ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL || 'https://sepolia.infura.io/v3/',
+    POLYGON_RPC_URL: process.env.POLYGON_RPC_URL || 'https://amoy.infura.io/v3/',
+    DEFAULT_NETWORK: process.env.DEFAULT_NETWORK || 'sepolia',
+    PRIVATE_KEY: process.env.PRIVATE_KEY || ''
   };
 
   console.log('Providing environment variables to browser:', {
     ...envVars,
-    VITE_PRIVATE_KEY: envVars.VITE_PRIVATE_KEY ? '[SET]' : '[NOT SET]'
+    PRIVATE_KEY: envVars.PRIVATE_KEY ? '[SET]' : '[NOT SET]'
   });
 
   return `
 window.__ENV__ = ${JSON.stringify(envVars)};
 console.log('Environment variables loaded in browser:', {
   ...window.__ENV__,
-  VITE_PRIVATE_KEY: window.__ENV__.VITE_PRIVATE_KEY ? '[SET]' : '[NOT SET]'
+  PRIVATE_KEY: window.__ENV__.PRIVATE_KEY ? '[SET]' : '[NOT SET]'
 });
 `;
 }
