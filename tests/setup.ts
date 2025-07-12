@@ -2,16 +2,20 @@ import '@testing-library/jest-dom';
 import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
+// ethersモックをインポート
+import './mocks/ethers';
+
 // テスト後のクリーンアップ
 afterEach(() => {
   cleanup();
 });
 
 // モック環境変数
-process.env.VITE_ETHEREUM_RPC_URL = 'https://goerli.infura.io/v3/test';
-process.env.VITE_POLYGON_RPC_URL = 'https://rpc-mumbai.maticvigil.com';
-process.env.VITE_BSC_RPC_URL = 'https://data-seed-prebsc-1-s1.binance.org:8545';
-process.env.VITE_DEFAULT_NETWORK = 'goerli';
+process.env.VITE_ETHEREUM_RPC_URL = 'https://sepolia.infura.io/v3/test';
+process.env.VITE_POLYGON_RPC_URL = 'https://amoy.infura.io/v3/test';
+process.env.VITE_DEFAULT_NETWORK = 'sepolia';
+process.env.VITE_PRIVATE_KEY = '321d68ca900f2837d3c6d0020e953685afe6846ab3bfe32e137d2a40df5d167e';
+process.env.PRIVATE_KEY = '321d68ca900f2837d3c6d0020e953685afe6846ab3bfe32e137d2a40df5d167e';
 
 // Web3関連のモック
 (global as any).window = global.window || {};

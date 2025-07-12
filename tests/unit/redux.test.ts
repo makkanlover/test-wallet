@@ -8,11 +8,11 @@ describe('Redux State Management', () => {
       address: null,
       balance: '0',
       network: {
-        id: 'goerli',
-        name: 'Ethereum Goerli',
-        rpcUrl: 'https://goerli.infura.io/v3/',
-        chainId: 5,
-        currency: 'GoerliETH'
+        id: 'sepolia',
+        name: 'Ethereum Sepolia',
+        rpcUrl: 'https://sepolia.infura.io/v3/',
+        chainId: 11155111,
+        currency: 'SepoliaETH'
       },
       isConnected: false,
       connectionType: null,

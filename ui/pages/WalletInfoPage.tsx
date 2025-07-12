@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../actions/store'
 import { updateBalance, disconnectWallet } from '../../actions/thunks/walletThunks'
+import { setNetwork } from '../../actions/slices/walletSlice'
 import { Theme } from '../themes'
 import WalletConnectionModal from '../components/WalletConnectionModal'
 
@@ -31,6 +32,22 @@ const WalletInfoPage: React.FC = () => {
     }
   }
 
+  const handleNetworkChange = async (networkId: string) => {
+    dispatch(setNetwork(networkId))
+    if (wallet.address) {
+      try {
+        await dispatch(updateBalance({ address: wallet.address }))
+      } catch (error) {
+        console.error('残高更新エラー:', error)
+      }
+    }
+  }
+
+  const networks = [
+    { id: 'sepolia', name: 'Ethereum Sepolia', currency: 'SepoliaETH' },
+    { id: 'amoy', name: 'Polygon Amoy', currency: 'MATIC' }
+  ]
+
   return (
     <div css={containerStyle}>
       <h2 css={titleStyle(theme)}>ウォレット情報</h2>
@@ -55,7 +72,20 @@ const WalletInfoPage: React.FC = () => {
       )}
 
       <div css={cardStyle(theme)}>
-        <h3 css={cardTitleStyle(theme)}>残高</h3>
+        <div css={balanceHeaderStyle}>
+          <h3 css={cardTitleStyle(theme)}>残高</h3>
+          <select 
+            css={networkSelectStyle(theme)}
+            value={wallet.network?.id || 'sepolia'}
+            onChange={(e) => handleNetworkChange(e.target.value)}
+          >
+            {networks.map(network => (
+              <option key={network.id} value={network.id}>
+                {network.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <div css={balanceStyle(theme)}>
           {wallet.balance} {wallet.network?.currency || 'ETH'}
         </div>
@@ -165,6 +195,28 @@ const addressStyle = (theme: Theme) => css`
   padding: ${theme.spacing.sm};
   border-radius: ${theme.borderRadius.sm};
   word-break: break-all;
+`
+
+const balanceHeaderStyle = css`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+`
+
+const networkSelectStyle = (theme: Theme) => css`
+  padding: ${theme.spacing.xs} ${theme.spacing.sm};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.sm};
+  background-color: ${theme.colors.background};
+  color: ${theme.colors.text};
+  font-size: 0.8rem;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: ${theme.colors.primary};
+  }
 `
 
 const balanceStyle = (theme: Theme) => css`

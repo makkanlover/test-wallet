@@ -25,6 +25,6 @@
       "@/tests/*": ["./tests/*"]
     }
   },
-  "include": ["src", "ui", "actions", "contracts", "tests"],
+  "include": ["src", "ui", "actions", "contracts", "tests", "vite-env.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

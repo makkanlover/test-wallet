@@ -28,33 +28,26 @@ const getEnvVar = (key: string, defaultValue: string) => {
 };
 
 const networks: Record<string, Network> = {
-  goerli: {
-    id: 'goerli',
-    name: 'Ethereum Goerli',
-    rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://goerli.infura.io/v3/'),
-    chainId: 5,
-    currency: 'GoerliETH'
+  sepolia: {
+    id: 'sepolia',
+    name: 'Ethereum Sepolia',
+    rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/'),
+    chainId: 11155111,
+    currency: 'SepoliaETH'
   },
-  mumbai: {
-    id: 'mumbai',
-    name: 'Polygon Mumbai',
-    rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://rpc-mumbai.maticvigil.com'),
-    chainId: 80001,
+  amoy: {
+    id: 'amoy',
+    name: 'Polygon Amoy',
+    rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://amoy.infura.io/v3/'),
+    chainId: 80002,
     currency: 'MATIC'
-  },
-  'bsc-testnet': {
-    id: 'bsc-testnet',
-    name: 'BSC Testnet',
-    rpcUrl: getEnvVar('VITE_BSC_RPC_URL', 'https://data-seed-prebsc-1-s1.binance.org:8545'),
-    chainId: 97,
-    currency: 'tBNB'
   }
 }
 
 const initialState: WalletState = {
   address: null,
   balance: '0',
-  network: networks[getEnvVar('VITE_DEFAULT_NETWORK', 'goerli')],
+  network: networks[getEnvVar('VITE_DEFAULT_NETWORK', 'sepolia')],
   isConnected: false,
   connectionType: null,
   provider: null,
