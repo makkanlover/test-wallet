@@ -4,15 +4,10 @@ import { Network } from '../slices/walletSlice'
 
 export const connectLocalWallet = createAsyncThunk(
   'wallet/connectLocal',
-  async ({ privateKey, network }: { privateKey: string; network: Network }, { rejectWithValue }) => {
+  async ({ network }: { network: Network }, { rejectWithValue }) => {
     try {
       const walletService = WalletService.getInstance()
-      
-      if (!walletService.validatePrivateKey(privateKey)) {
-        throw new Error('無効な秘密鍵です')
-      }
-
-      const result = await walletService.connectWithPrivateKey(privateKey, network)
+      const result = await walletService.connectLocalWallet(network)
       
       return {
         address: result.address,

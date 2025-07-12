@@ -1,6 +1,5 @@
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { AppDispatch, RootState } from '../../actions/store'
@@ -13,7 +12,6 @@ interface WalletConnectionModalProps {
 }
 
 interface FormData {
-  privateKey: string
   network: string
 }
 
@@ -22,10 +20,9 @@ const WalletConnectionModal: React.FC<WalletConnectionModalProps> = ({ isOpen, o
   const dispatch = useDispatch<AppDispatch>()
   const { isLoading, error } = useSelector((state: RootState) => state.wallet)
   
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const { register, handleSubmit, reset } = useForm<FormData>({
     defaultValues: {
-      privateKey: '',
-      network: 'goerli'
+      network: 'sepolia'
     }
   })
 
@@ -37,9 +34,8 @@ const WalletConnectionModal: React.FC<WalletConnectionModalProps> = ({ isOpen, o
   };
 
   const networks = [
-    { id: 'goerli', name: 'Ethereum Goerli', rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://goerli.infura.io/v3/'), chainId: 5, currency: 'GoerliETH' },
-    { id: 'mumbai', name: 'Polygon Mumbai', rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://rpc-mumbai.maticvigil.com'), chainId: 80001, currency: 'MATIC' },
-    { id: 'bsc-testnet', name: 'BSC Testnet', rpcUrl: getEnvVar('VITE_BSC_RPC_URL', 'https://data-seed-prebsc-1-s1.binance.org:8545'), chainId: 97, currency: 'tBNB' }
+    { id: 'sepolia', name: 'Ethereum Sepolia', rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/'), chainId: 11155111, currency: 'SepoliaETH' },
+    { id: 'amoy', name: 'Polygon Amoy', rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://amoy.infura.io/v3/'), chainId: 80002, currency: 'MATIC' }
   ]
 
   const onSubmit = async (data: FormData) => {
@@ -48,7 +44,6 @@ const WalletConnectionModal: React.FC<WalletConnectionModalProps> = ({ isOpen, o
 
     try {
       await dispatch(connectLocalWallet({
-        privateKey: data.privateKey,
         network: selectedNetwork
       })).unwrap()
       
@@ -66,26 +61,12 @@ const WalletConnectionModal: React.FC<WalletConnectionModalProps> = ({ isOpen, o
       <div css={modalStyle(theme)} onClick={(e) => e.stopPropagation()}>
         <h3 css={titleStyle(theme)}>ローカルウォレット接続</h3>
         
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div css={fieldStyle}>
-            <label css={labelStyle(theme)}>秘密鍵</label>
-            <input
-              type="password"
-              css={inputStyle(theme, !!errors.privateKey)}
-              placeholder="0x... または 64文字のHex文字列"
-              {...register('privateKey', {
-                required: '秘密鍵は必須です',
-                pattern: {
-                  value: /^(0x)?[0-9a-fA-F]{64}$/,
-                  message: '有効な秘密鍵を入力してください'
-                }
-              })}
-            />
-            {errors.privateKey && (
-              <div css={errorStyle(theme)}>{errors.privateKey.message}</div>
-            )}
-          </div>
+        <div css={infoStyle(theme)}>
+          <p>環境変数から秘密鍵を取得してローカルウォレットに接続します。</p>
+          <p><small>秘密鍵が設定されていない場合は、.envファイルにPRIVATE_KEYを設定してアプリを再起動してください。</small></p>
+        </div>
 
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div css={fieldStyle}>
             <label css={labelStyle(theme)}>ネットワーク</label>
             <select css={selectStyle(theme)} {...register('network')}>
@@ -152,6 +133,30 @@ const titleStyle = (theme: Theme) => css`
   font-size: 1.25rem;
 `
 
+const infoStyle = (theme: Theme) => css`
+  background-color: ${theme.colors.background};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  padding: ${theme.spacing.md};
+  margin-bottom: ${theme.spacing.lg};
+  color: ${theme.colors.textSecondary};
+  font-size: 0.9rem;
+  line-height: 1.5;
+
+  p {
+    margin: 0 0 ${theme.spacing.sm} 0;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  small {
+    font-size: 0.8rem;
+    opacity: 0.8;
+  }
+`
+
 const fieldStyle = css`
   margin-bottom: 1rem;
 `
@@ -164,21 +169,6 @@ const labelStyle = (theme: Theme) => css`
   font-size: 0.9rem;
 `
 
-const inputStyle = (theme: Theme, hasError: boolean) => css`
-  width: 100%;
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  border: 1px solid ${hasError ? theme.colors.error : theme.colors.border};
-  border-radius: ${theme.borderRadius.md};
-  background-color: ${theme.colors.background};
-  color: ${theme.colors.text};
-  font-size: 0.9rem;
-  box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: ${theme.colors.primary};
-  }
-`
 
 const selectStyle = (theme: Theme) => css`
   width: 100%;

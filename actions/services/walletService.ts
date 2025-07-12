@@ -13,6 +13,45 @@ export class WalletService {
     return WalletService.instance
   }
 
+  private getEnvVar(key: string, defaultValue: string = ''): string {
+    if (typeof window !== 'undefined' && import.meta?.env) {
+      return import.meta.env[key] || defaultValue;
+    }
+    return process.env[key] || defaultValue;
+  }
+
+  private getPrivateKeyFromEnv(): string {
+    const privateKey = this.getEnvVar('VITE_PRIVATE_KEY') || this.getEnvVar('PRIVATE_KEY');
+    if (!privateKey) {
+      throw new Error('秘密鍵が.envファイルに設定されていません。PRIVATE_KEYを設定してアプリを再起動してください。');
+    }
+    return privateKey;
+  }
+
+  async connectLocalWallet(network: Network): Promise<{
+    address: string
+    provider: ethers.JsonRpcProvider
+    wallet: ethers.Wallet
+  }> {
+    try {
+      const privateKey = this.getPrivateKeyFromEnv();
+      this.provider = new ethers.JsonRpcProvider(network.rpcUrl)
+      
+      const cleanPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`
+      this.wallet = new ethers.Wallet(cleanPrivateKey, this.provider)
+
+      const address = await this.wallet.getAddress()
+      
+      return {
+        address,
+        provider: this.provider,
+        wallet: this.wallet
+      }
+    } catch (error) {
+      throw new Error(`ウォレット接続に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
   async connectWithPrivateKey(privateKey: string, network: Network): Promise<{
     address: string
     provider: ethers.JsonRpcProvider

@@ -15,7 +15,12 @@
       "Bash(curl:*)",
       "Bash(sudo apt-get:*)",
       "Bash(sudo apt-get install:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck:*)"
     ],
     "deny": []
   }

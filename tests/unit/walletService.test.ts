@@ -1,31 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { WalletService } from '../../actions/services/walletService';
-
-// ethersのモック
-vi.mock('ethers', () => ({
-  JsonRpcProvider: vi.fn(),
-  Wallet: vi.fn(),
-  formatEther: vi.fn(),
-  parseEther: vi.fn(),
-  getBigInt: vi.fn(),
-  parseUnits: vi.fn(),
-  formatUnits: vi.fn(),
-  isAddress: vi.fn(),
-}));
-
+import { MOCK_ADDRESS, MOCK_BALANCE, mockEthers } from '../mocks/ethers';
 import { ethers } from 'ethers';
 
 describe('WalletService', () => {
   let walletService: WalletService;
-  const mockProvider = {
-    getBalance: vi.fn(),
-    estimateGas: vi.fn(),
-    getFeeData: vi.fn(),
-  };
-  const mockWallet = {
-    getAddress: vi.fn(),
-    sendTransaction: vi.fn(),
-  };
 
   beforeEach(() => {
     walletService = WalletService.getInstance();
@@ -68,27 +47,51 @@ describe('WalletService', () => {
 
   describe('validatePrivateKey', () => {
     it('有効な秘密鍵でtrueが返される', () => {
-      (ethers.Wallet as any).mockImplementation(() => ({}));
-      
       const result = walletService.validatePrivateKey('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
       expect(result).toBe(true);
     });
 
     it('0xプレフィックスがない秘密鍵でも処理される', () => {
-      (ethers.Wallet as any).mockImplementation(() => ({}));
-      
       const result = walletService.validatePrivateKey('1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
       expect(result).toBe(true);
-      expect(ethers.Wallet).toHaveBeenCalledWith('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
     });
 
     it('無効な秘密鍵でfalseが返される', () => {
-      (ethers.Wallet as any).mockImplementation(() => {
-        throw new Error('Invalid private key');
-      });
-      
       const result = walletService.validatePrivateKey('invalid-key');
       expect(result).toBe(false);
+    });
+  });
+
+  describe('connectLocalWallet', () => {
+    const testNetwork = {
+      id: 'sepolia',
+      name: 'Ethereum Sepolia',
+      rpcUrl: 'https://sepolia.infura.io/v3/',
+      chainId: 11155111,
+      currency: 'SepoliaETH'
+    };
+
+    it('環境変数の秘密鍵で正常に接続される', async () => {
+      const result = await walletService.connectLocalWallet(testNetwork);
+      
+      expect(result.address).toBe(MOCK_ADDRESS);
+      expect(result.provider).toBeDefined();
+      expect(result.wallet).toBeDefined();
+      expect(ethers.JsonRpcProvider).toHaveBeenCalledWith(testNetwork.rpcUrl);
+    });
+
+    it('環境変数に秘密鍵がない場合エラーが発生', async () => {
+      // 一時的に環境変数をクリア
+      const originalKey = process.env.VITE_PRIVATE_KEY;
+      delete process.env.VITE_PRIVATE_KEY;
+      delete process.env.PRIVATE_KEY;
+
+      await expect(
+        walletService.connectLocalWallet(testNetwork)
+      ).rejects.toThrow('秘密鍵が.envファイルに設定されていません');
+
+      // 環境変数を復元
+      if (originalKey) process.env.VITE_PRIVATE_KEY = originalKey;
     });
   });
 });

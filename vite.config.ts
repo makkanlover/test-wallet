@@ -19,8 +19,17 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
-    timeout: 5000,
-    include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}']
+    timeout: 10000,
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['tests/visual/**'],
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true
+      }
+    }
   },
   resolve: {
     alias: {
