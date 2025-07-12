@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { AppDispatch, RootState } from '../../actions/store'
 import { deployContract, estimateDeployGas } from '../../actions/thunks/contractThunks'
+import { useToast } from '../hooks/useToast'
 import { Theme } from '../themes'
 
 interface FormData {
@@ -18,6 +19,7 @@ const ERC20DeployForm: React.FC = () => {
   const theme = useTheme() as Theme
   const dispatch = useDispatch<AppDispatch>()
   const contract = useSelector((state: RootState) => state.contract)
+  const toast = useToast()
   
   const { register, handleSubmit, formState: { errors }, watch, reset } = useForm<FormData>({
     defaultValues: {
@@ -35,7 +37,7 @@ const ERC20DeployForm: React.FC = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await dispatch(deployContract({
+      const result = await dispatch(deployContract({
         type: 'erc20',
         name: data.name,
         symbol: data.symbol,
@@ -43,21 +45,28 @@ const ERC20DeployForm: React.FC = () => {
         totalSupply: data.totalSupply
       })).unwrap()
       
+      toast.showSuccess(`ERC20コントラクト "${data.name}" のデプロイが完了しました`)
       reset()
     } catch (error) {
-      console.error('ERC20デプロイエラー:', error)
+      toast.showError(`ERC20デプロイに失敗しました: ${error}`)
     }
   }
 
   const handleEstimateGas = async () => {
     if (watchedName && watchedSymbol && watchedDecimals && watchedTotalSupply) {
-      dispatch(estimateDeployGas({
-        type: 'erc20',
-        name: watchedName,
-        symbol: watchedSymbol,
-        decimals: parseInt(watchedDecimals),
-        totalSupply: watchedTotalSupply
-      }))
+      try {
+        await dispatch(estimateDeployGas({
+          type: 'erc20',
+          name: watchedName,
+          symbol: watchedSymbol,
+          decimals: parseInt(watchedDecimals),
+          totalSupply: watchedTotalSupply
+        })).unwrap()
+        
+        toast.showInfo('ガス見積もりが完了しました')
+      } catch (error) {
+        toast.showError(`ガス見積もりに失敗しました: ${error}`)
+      }
     }
   }
 

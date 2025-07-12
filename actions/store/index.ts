@@ -3,6 +3,7 @@ import walletReducer from '../slices/walletSlice'
 import transactionReducer from '../slices/transactionSlice'
 import contractReducer from '../slices/contractSlice'
 import settingsReducer from '../slices/settingsSlice'
+import toastReducer from '../slices/toastSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     transaction: transactionReducer,
     contract: contractReducer,
     settings: settingsReducer,
+    toast: toastReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

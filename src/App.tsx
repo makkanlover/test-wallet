@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { RootState } from '../actions/store'
 import { themes } from '../ui/themes'
 import Layout from '../ui/components/Layout'
+import ToastContainer from '../ui/components/ToastContainer'
 import WalletInfoPage from '../ui/pages/WalletInfoPage'
 import TransactionPage from '../ui/pages/TransactionPage'
 import ContractPage from '../ui/pages/ContractPage'
@@ -33,6 +34,7 @@ function App() {
       <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
         {renderCurrentPage()}
       </Layout>
+      <ToastContainer />
     </ThemeProvider>
   )
 }

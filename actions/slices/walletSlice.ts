@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { connectLocalWallet, updateBalance, disconnectWallet } from '../thunks/walletThunks'
+import { connectLocalWallet, connectExternalWallet, updateBalance, disconnectWallet } from '../thunks/walletThunks'
 import { getEnvVar } from '../utils/env'
 
 export interface Network {
@@ -102,6 +102,22 @@ const walletSlice = createSlice({
         state.error = null
       })
       .addCase(connectLocalWallet.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
+      .addCase(connectExternalWallet.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(connectExternalWallet.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.address = action.payload.address
+        state.provider = action.payload.provider
+        state.isConnected = true
+        state.connectionType = action.payload.connectionType
+        state.error = null
+      })
+      .addCase(connectExternalWallet.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload as string
       })

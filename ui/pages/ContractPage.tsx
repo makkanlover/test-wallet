@@ -37,11 +37,10 @@ const ContractPage: React.FC = () => {
       <h2 css={titleStyle(theme)}>コントラクト作成</h2>
       
       <div css={noteStyle(theme)}>
-        <h4 css={noteTitle(theme)}>🚧 開発中の機能</h4>
+        <h4 css={noteTitle(theme)}>📋 使用方法</h4>
         <p css={noteText(theme)}>
-          現在、コントラクトのデプロイ機能は開発中です。
-          Hardhatでのコンパイルとartifacts生成が必要です。
-          フォームの機能とUIのみ実装されています。
+          コントラクトをデプロイする前に、「npx hardhat compile」でコントラクトをコンパイルしてください。
+          コンパイル完了後、ERC20やERC721トークンを作成できます。
         </p>
       </div>
       
@@ -92,8 +91,8 @@ const messageStyle = (theme: Theme) => css`
 `
 
 const noteStyle = (theme: Theme) => css`
-  background-color: ${theme.colors.warning}15;
-  border: 1px solid ${theme.colors.warning};
+  background-color: ${theme.colors.primary}15;
+  border: 1px solid ${theme.colors.primary};
   border-radius: ${theme.borderRadius.md};
   padding: ${theme.spacing.md};
   margin-bottom: ${theme.spacing.lg};
@@ -102,7 +101,7 @@ const noteStyle = (theme: Theme) => css`
 const noteTitle = (theme: Theme) => css`
   font-size: 1rem;
   margin: 0 0 ${theme.spacing.sm} 0;
-  color: ${theme.colors.warning};
+  color: ${theme.colors.primary};
 `
 
 const noteText = (theme: Theme) => css`

@@ -3,23 +3,26 @@ import { useTheme } from '@emotion/react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../actions/store'
-import { updateBalance, disconnectWallet } from '../../actions/thunks/walletThunks'
+import { updateBalance, disconnectWallet, connectExternalWallet } from '../../actions/thunks/walletThunks'
 import { setNetwork } from '../../actions/slices/walletSlice'
 import { Theme } from '../themes'
+import { useToast } from '../hooks/useToast'
 import WalletConnectionModal from '../components/WalletConnectionModal'
 
 const WalletInfoPage: React.FC = () => {
   const theme = useTheme() as Theme
   const dispatch = useDispatch<AppDispatch>()
   const wallet = useSelector((state: RootState) => state.wallet)
+  const toast = useToast()
   const [showConnectionModal, setShowConnectionModal] = useState(false)
 
   const handleUpdateBalance = async () => {
     if (wallet.address) {
       try {
         await dispatch(updateBalance({ address: wallet.address }))
+        toast.showSuccess('残高を更新しました')
       } catch (error) {
-        console.error('残高更新エラー:', error)
+        toast.showError('残高更新に失敗しました')
       }
     }
   }
@@ -27,8 +30,9 @@ const WalletInfoPage: React.FC = () => {
   const handleDisconnect = async () => {
     try {
       await dispatch(disconnectWallet())
+      toast.showSuccess('ウォレットを切断しました')
     } catch (error) {
-      console.error('ウォレット切断エラー:', error)
+      toast.showError('ウォレット切断に失敗しました')
     }
   }
 
@@ -37,9 +41,21 @@ const WalletInfoPage: React.FC = () => {
     if (wallet.address) {
       try {
         await dispatch(updateBalance({ address: wallet.address }))
+        toast.showInfo('ネットワークを変更しました')
       } catch (error) {
-        console.error('残高更新エラー:', error)
+        toast.showError('残高更新に失敗しました')
       }
+    }
+  }
+
+  const handleExternalWalletConnect = async () => {
+    if (!wallet.network) return
+    
+    try {
+      await dispatch(connectExternalWallet({ network: wallet.network }))
+      toast.showSuccess('外部ウォレットに接続しました')
+    } catch (error) {
+      toast.showError('外部ウォレット接続に失敗しました')
     }
   }
 
@@ -117,8 +133,12 @@ const WalletInfoPage: React.FC = () => {
             >
               {wallet.isLoading ? '接続中...' : 'ローカルウォレット接続'}
             </button>
-            <button css={buttonStyle(theme, 'secondary')} disabled>
-              外部ウォレット接続（開発中）
+            <button 
+              css={buttonStyle(theme, 'secondary')}
+              onClick={handleExternalWalletConnect}
+              disabled={wallet.isLoading}
+            >
+              {wallet.isLoading ? '接続中...' : '外部ウォレット接続'}
             </button>
           </>
         ) : (
