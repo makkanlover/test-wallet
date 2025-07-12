@@ -1,0 +1,7 @@
+{
+  "project_name": "Web3 Wallet System",
+  "language": "typescript",
+  "framework": "node",
+  "security_focus": true,
+  "defensive_only": true
+}
