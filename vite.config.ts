@@ -1,5 +1,7 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [
@@ -13,4 +15,20 @@ export default defineConfig({
   define: {
     global: 'globalThis',
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./tests/setup.ts'],
+    timeout: 5000,
+    include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}']
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@/ui': path.resolve(__dirname, './ui'),
+      '@/actions': path.resolve(__dirname, './actions'),
+      '@/contracts': path.resolve(__dirname, './contracts'),
+      '@/tests': path.resolve(__dirname, './tests')
+    }
+  }
 })

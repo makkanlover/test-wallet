@@ -29,10 +29,17 @@ const WalletConnectionModal: React.FC<WalletConnectionModalProps> = ({ isOpen, o
     }
   })
 
+  const getEnvVar = (key: string, defaultValue: string) => {
+    if (typeof window !== 'undefined' && import.meta?.env) {
+      return import.meta.env[key] || defaultValue;
+    }
+    return process.env[key] || defaultValue;
+  };
+
   const networks = [
-    { id: 'goerli', name: 'Ethereum Goerli', rpcUrl: import.meta.env.VITE_ETHEREUM_RPC_URL || 'https://goerli.infura.io/v3/', chainId: 5, currency: 'GoerliETH' },
-    { id: 'mumbai', name: 'Polygon Mumbai', rpcUrl: import.meta.env.VITE_POLYGON_RPC_URL || 'https://rpc-mumbai.maticvigil.com', chainId: 80001, currency: 'MATIC' },
-    { id: 'bsc-testnet', name: 'BSC Testnet', rpcUrl: import.meta.env.VITE_BSC_RPC_URL || 'https://data-seed-prebsc-1-s1.binance.org:8545', chainId: 97, currency: 'tBNB' }
+    { id: 'goerli', name: 'Ethereum Goerli', rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://goerli.infura.io/v3/'), chainId: 5, currency: 'GoerliETH' },
+    { id: 'mumbai', name: 'Polygon Mumbai', rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://rpc-mumbai.maticvigil.com'), chainId: 80001, currency: 'MATIC' },
+    { id: 'bsc-testnet', name: 'BSC Testnet', rpcUrl: getEnvVar('VITE_BSC_RPC_URL', 'https://data-seed-prebsc-1-s1.binance.org:8545'), chainId: 97, currency: 'tBNB' }
   ]
 
   const onSubmit = async (data: FormData) => {
