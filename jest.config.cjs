@@ -17,26 +17,10 @@ module.exports = {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true
       }
-    }],
-    '^.+\\.(js|jsx)$': 'babel-jest'
+    }]
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testMatch: [
-    '<rootDir>/tests/**/*.(test|spec).(ts|tsx|js|jsx)',
-    '<rootDir>/**/__tests__/**/*.(ts|tsx|js|jsx)'
+    '<rootDir>/tests/**/*.(test|spec).(ts|tsx)'
   ],
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    'ui/**/*.{ts,tsx}',
-    'actions/**/*.{ts,tsx}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-    '!**/vendor/**'
-  ],
-  coverageReporters: ['text', 'lcov', 'html'],
-  coverageDirectory: '<rootDir>/coverage',
-  testTimeout: 10000,
-  transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$))'
-  ]
+  testTimeout: 5000
 };

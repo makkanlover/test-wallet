@@ -20,25 +20,32 @@ export interface WalletState {
   error: string | null
 }
 
+const getEnvVar = (key: string, defaultValue: string) => {
+  if (typeof window !== 'undefined' && import.meta?.env) {
+    return import.meta.env[key] || defaultValue;
+  }
+  return process.env[key] || defaultValue;
+};
+
 const networks: Record<string, Network> = {
   goerli: {
     id: 'goerli',
     name: 'Ethereum Goerli',
-    rpcUrl: import.meta.env.VITE_ETHEREUM_RPC_URL || 'https://goerli.infura.io/v3/',
+    rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://goerli.infura.io/v3/'),
     chainId: 5,
     currency: 'GoerliETH'
   },
   mumbai: {
     id: 'mumbai',
     name: 'Polygon Mumbai',
-    rpcUrl: import.meta.env.VITE_POLYGON_RPC_URL || 'https://rpc-mumbai.maticvigil.com',
+    rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://rpc-mumbai.maticvigil.com'),
     chainId: 80001,
     currency: 'MATIC'
   },
   'bsc-testnet': {
     id: 'bsc-testnet',
     name: 'BSC Testnet',
-    rpcUrl: import.meta.env.VITE_BSC_RPC_URL || 'https://data-seed-prebsc-1-s1.binance.org:8545',
+    rpcUrl: getEnvVar('VITE_BSC_RPC_URL', 'https://data-seed-prebsc-1-s1.binance.org:8545'),
     chainId: 97,
     currency: 'tBNB'
   }
@@ -47,7 +54,7 @@ const networks: Record<string, Network> = {
 const initialState: WalletState = {
   address: null,
   balance: '0',
-  network: networks[import.meta.env.VITE_DEFAULT_NETWORK || 'goerli'],
+  network: networks[getEnvVar('VITE_DEFAULT_NETWORK', 'goerli')],
   isConnected: false,
   connectionType: null,
   provider: null,

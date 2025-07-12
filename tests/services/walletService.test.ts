@@ -1,5 +1,4 @@
 import { WalletService } from '../../actions/services/walletService';
-import { ethers } from 'ethers';
 
 // ethersのモック
 jest.mock('ethers', () => ({
@@ -12,6 +11,8 @@ jest.mock('ethers', () => ({
   formatUnits: jest.fn(),
   isAddress: jest.fn(),
 }));
+
+import { ethers } from 'ethers';
 
 describe('WalletService', () => {
   let walletService: WalletService;
