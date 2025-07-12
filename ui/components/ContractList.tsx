@@ -129,7 +129,10 @@ const ContractList: React.FC = () => {
               <button
                 css={actionButtonStyle(theme)}
                 onClick={() => {
-                  const url = `https://goerli.etherscan.io/address/${contract.address}`
+                  const networkId = contract.network || 'sepolia';
+                  const url = networkId === 'amoy' ? 
+                    `https://amoy.polygonscan.com/address/${contract.address}` :
+                    `https://sepolia.etherscan.io/address/${contract.address}`
                   window.open(url, '_blank')
                 }}
                 title="Etherscanで確認"

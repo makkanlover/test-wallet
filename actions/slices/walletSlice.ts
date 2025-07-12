@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { connectLocalWallet, updateBalance, disconnectWallet } from '../thunks/walletThunks'
+import { getEnvVar } from '../utils/env'
 
 export interface Network {
   id: string
@@ -20,37 +21,18 @@ export interface WalletState {
   error: string | null
 }
 
-const getEnvVar = (key: string, defaultValue: string) => {
-  // ブラウザ環境での環境変数取得
-  if (typeof window !== 'undefined') {
-    // サーバーから提供される環境変数
-    const envVars = (window as any).__ENV__;
-    if (envVars && envVars[key]) {
-      return envVars[key];
-    }
-    
-    // Viteの環境変数（開発時）
-    if (import.meta?.env && import.meta.env[key]) {
-      return import.meta.env[key];
-    }
-  }
-  
-  // Node.js環境（テスト等）
-  return process.env[key] || defaultValue;
-};
-
 const networks: Record<string, Network> = {
   sepolia: {
     id: 'sepolia',
     name: 'Ethereum Sepolia',
-    rpcUrl: getEnvVar('VITE_ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/ef0ca7db451949e8bd42c77df3160530'),
+    rpcUrl: getEnvVar('ETHEREUM_RPC_URL', 'https://sepolia.infura.io/v3/ef0ca7db451949e8bd42c77df3160530'),
     chainId: 11155111,
     currency: 'SepoliaETH'
   },
   amoy: {
     id: 'amoy',
     name: 'Polygon Amoy',
-    rpcUrl: getEnvVar('VITE_POLYGON_RPC_URL', 'https://amoy.infura.io/v3/ef0ca7db451949e8bd42c77df3160530'),
+    rpcUrl: getEnvVar('POLYGON_RPC_URL', 'https://amoy.infura.io/v3/ef0ca7db451949e8bd42c77df3160530'),
     chainId: 80002,
     currency: 'MATIC'
   }
@@ -59,7 +41,7 @@ const networks: Record<string, Network> = {
 const initialState: WalletState = {
   address: null,
   balance: '0',
-  network: networks[getEnvVar('VITE_DEFAULT_NETWORK', 'sepolia')],
+  network: networks[getEnvVar('DEFAULT_NETWORK', 'sepolia')],
   isConnected: false,
   connectionType: null,
   provider: null,

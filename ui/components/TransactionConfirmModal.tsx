@@ -50,6 +50,12 @@ const TransactionConfirmModal: React.FC<TransactionConfirmModalProps> = ({
   return (
     <div css={overlayStyle} onClick={onClose}>
       <div css={modalStyle(theme)} onClick={(e) => e.stopPropagation()}>
+        {isLoading && (
+          <div css={loadingOverlayStyle}>
+            <div css={loadingSpinnerStyle}></div>
+            <div css={loadingTextStyle(theme)}>トランザクションを送信中...</div>
+          </div>
+        )}
         <h3 css={titleStyle(theme)}>{getTransactionTitle()}の確認</h3>
         
         <div css={detailsStyle}>
@@ -156,6 +162,7 @@ const overlayStyle = css`
 `
 
 const modalStyle = (theme: Theme) => css`
+  position: relative;
   background-color: ${theme.colors.surface};
   border-radius: ${theme.borderRadius.lg};
   padding: ${theme.spacing.xl};
@@ -254,6 +261,42 @@ const buttonStyle = (theme: Theme, variant: 'primary' | 'secondary') => css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+`
+
+const loadingOverlayStyle = css`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  z-index: 10;
+`
+
+const loadingSpinnerStyle = css`
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`
+
+const loadingTextStyle = (theme: Theme) => css`
+  color: ${theme.colors.text};
+  font-size: 1rem;
+  font-weight: 500;
 `
 
 export default TransactionConfirmModal

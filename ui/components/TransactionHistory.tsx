@@ -139,7 +139,10 @@ const TransactionHistory: React.FC = () => {
               <button
                 css={actionButtonStyle(theme)}
                 onClick={() => {
-                  const url = `https://goerli.etherscan.io/tx/${tx.hash}`
+                  const networkId = tx.network || 'sepolia';
+                  const url = networkId === 'amoy' ? 
+                    `https://amoy.polygonscan.com/tx/${tx.hash}` :
+                    `https://sepolia.etherscan.io/tx/${tx.hash}`
                   window.open(url, '_blank')
                 }}
                 title="Etherscanで確認"

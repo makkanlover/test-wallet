@@ -23,7 +23,13 @@
       "Bash(npm run typecheck:*)",
       "Bash(npx vite:*)",
       "Bash(pkill:*)",
-      "Bash(fuser:*)"
+      "Bash(fuser:*)",
+      "Bash(sudo npx playwright:*)",
+      "Bash(find:*)",
+      "Bash(npm run:*)",
+      "Bash(ls:*)",
+      "Bash(apt-get:*)",
+      "Bash(apt-get install:*)"
     ],
     "deny": []
   }

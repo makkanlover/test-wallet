@@ -18,6 +18,7 @@ const NFTTransactionForm: React.FC = () => {
   const theme = useTheme() as Theme
   const dispatch = useDispatch<AppDispatch>()
   const transaction = useSelector((state: RootState) => state.transaction)
+  const contract = useSelector((state: RootState) => state.contract)
   
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [formData, setFormData] = useState<FormData | null>(null)
@@ -70,18 +71,42 @@ const NFTTransactionForm: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div css={fieldStyle}>
           <label css={labelStyle(theme)}>NFTコントラクトアドレス</label>
-          <input
-            type="text"
-            css={inputStyle(theme, !!errors.contractAddress)}
-            placeholder="0x..."
-            {...register('contractAddress', {
-              required: 'コントラクトアドレスは必須です',
-              pattern: {
-                value: /^0x[a-fA-F0-9]{40}$/,
-                message: '有効なコントラクトアドレスを入力してください'
+          {contract.contracts.some(c => c.type === 'erc721') ? (
+            <select
+              css={selectStyle(theme, !!errors.contractAddress)}
+              {...register('contractAddress', {
+                required: 'コントラクトアドレスは必須です'
+              })}
+            >
+              <option value="">コントラクトを選択してください</option>
+              {contract.contracts
+                .filter(c => c.type === 'erc721')
+                .map(c => (
+                  <option key={c.address} value={c.address}>
+                    {c.name} ({c.symbol}) - {c.address.slice(0, 10)}...{c.address.slice(-8)}
+                  </option>
+                ))
               }
-            })}
-          />
+            </select>
+          ) : (
+            <>
+              <input
+                type="text"
+                css={inputStyle(theme, !!errors.contractAddress)}
+                placeholder="0x..."
+                {...register('contractAddress', {
+                  required: 'コントラクトアドレスは必須です',
+                  pattern: {
+                    value: /^0x[a-fA-F0-9]{40}$/,
+                    message: '有効なコントラクトアドレスを入力してください'
+                  }
+                })}
+              />
+              <div css={noteStyle(theme)}>
+                💡 ERC721コントラクトをデプロイすると、ここでドロップダウン選択ができるようになります
+              </div>
+            </>
+          )}
           {errors.contractAddress && (
             <div css={errorStyle(theme)}>{errors.contractAddress.message}</div>
           )}
@@ -220,6 +245,22 @@ const labelStyle = (theme: Theme) => css`
 `
 
 const inputStyle = (theme: Theme, hasError: boolean) => css`
+  width: 100%;
+  padding: ${theme.spacing.md};
+  border: 1px solid ${hasError ? theme.colors.error : theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  background-color: ${theme.colors.background};
+  color: ${theme.colors.text};
+  font-size: 1rem;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: ${theme.colors.primary};
+  }
+`
+
+const selectStyle = (theme: Theme, hasError: boolean) => css`
   width: 100%;
   padding: ${theme.spacing.md};
   border: 1px solid ${hasError ? theme.colors.error : theme.colors.border};

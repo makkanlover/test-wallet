@@ -11,10 +11,9 @@ afterEach(() => {
 });
 
 // モック環境変数
-process.env.VITE_ETHEREUM_RPC_URL = 'https://sepolia.infura.io/v3/test';
-process.env.VITE_POLYGON_RPC_URL = 'https://amoy.infura.io/v3/test';
-process.env.VITE_DEFAULT_NETWORK = 'sepolia';
-process.env.VITE_PRIVATE_KEY = '321d68ca900f2837d3c6d0020e953685afe6846ab3bfe32e137d2a40df5d167e';
+process.env.ETHEREUM_RPC_URL = 'https://sepolia.infura.io/v3/test';
+process.env.POLYGON_RPC_URL = 'https://amoy.infura.io/v3/test';
+process.env.DEFAULT_NETWORK = 'sepolia';
 process.env.PRIVATE_KEY = '321d68ca900f2837d3c6d0020e953685afe6846ab3bfe32e137d2a40df5d167e';
 
 // Web3関連のモック
@@ -26,40 +25,43 @@ process.env.PRIVATE_KEY = '321d68ca900f2837d3c6d0020e953685afe6846ab3bfe32e137d2
 };
 
 // Emotionのモック
-vi.mock('@emotion/react', () => ({
-  ...vi.importActual('@emotion/react'),
-  useTheme: () => ({
-    colors: {
-      primary: '#3b82f6',
-      secondary: '#64748b',
-      background: '#ffffff',
-      surface: '#f8fafc',
-      text: '#1e293b',
-      textSecondary: '#64748b',
-      border: '#e2e8f0',
-      success: '#10b981',
-      warning: '#f59e0b',
-      error: '#ef4444'
-    },
-    spacing: {
-      xs: '0.25rem',
-      sm: '0.5rem',
-      md: '1rem',
-      lg: '1.5rem',
-      xl: '2rem'
-    },
-    borderRadius: {
-      sm: '0.25rem',
-      md: '0.5rem',
-      lg: '0.75rem'
-    },
-    shadows: {
-      sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-      md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-      lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
-    }
-  })
-}));
+vi.mock('@emotion/react', async () => {
+  const actual = await vi.importActual('@emotion/react');
+  return {
+    ...actual,
+    useTheme: () => ({
+      colors: {
+        primary: '#3b82f6',
+        secondary: '#64748b',
+        background: '#ffffff',
+        surface: '#f8fafc',
+        text: '#1e293b',
+        textSecondary: '#64748b',
+        border: '#e2e8f0',
+        success: '#10b981',
+        warning: '#f59e0b',
+        error: '#ef4444'
+      },
+      spacing: {
+        xs: '0.25rem',
+        sm: '0.5rem',
+        md: '1rem',
+        lg: '1.5rem',
+        xl: '2rem'
+      },
+      borderRadius: {
+        sm: '0.25rem',
+        md: '0.5rem',
+        lg: '0.75rem'
+      },
+      shadows: {
+        sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+        lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+      }
+    })
+  };
+});
 
 // React Hook Formのモック
 vi.mock('react-hook-form', () => ({
