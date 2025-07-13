@@ -50,6 +50,20 @@ console.log('Environment variables loaded in browser:', {
 `;
 }
 
+// 秘密鍵からアドレスを取得する関数
+function getAddressFromPrivateKey(privateKey) {
+  const { ethers } = require('ethers');
+  try {
+    // 0xプレフィックスを確認
+    const cleanPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
+    const wallet = new ethers.Wallet(cleanPrivateKey);
+    return wallet.address;
+  } catch (error) {
+    console.error('秘密鍵からアドレス取得エラー:', error);
+    throw new Error('有効な秘密鍵が設定されていません');
+  }
+}
+
 // デプロイ処理関数
 async function handleDeploy(params) {
   const { spawn } = require('child_process');
@@ -57,6 +71,14 @@ async function handleDeploy(params) {
   try {
     console.log('=== デプロイフロー開始 ===');
     console.log('ステップ1: デプロイパラメータ受信:', params);
+    
+    // .envの秘密鍵からオーナーアドレスを取得
+    if (!process.env.PRIVATE_KEY) {
+      throw new Error('PRIVATE_KEYが設定されていません');
+    }
+    
+    const ownerAddress = getAddressFromPrivateKey(process.env.PRIVATE_KEY);
+    console.log('オーナーアドレス (.envから算出):', ownerAddress);
     
     console.log('ステップ2: パラメータファイル作成開始');
     
@@ -72,7 +94,7 @@ async function handleDeploy(params) {
         } : {
           baseURI: params.baseURI || 'https://example.com/metadata/'
         }),
-        owner: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' // TODO: 実際のアドレスに変更
+        owner: ownerAddress // .envの秘密鍵から算出したアドレスを使用
       }
     };
     
@@ -252,6 +274,9 @@ async function saveContractInfo(params, deployResult) {
     }
   }
   
+  // .envの秘密鍵からオーナーアドレスを取得
+  const ownerAddress = getAddressFromPrivateKey(process.env.PRIVATE_KEY);
+  
   const newContract = {
     id: `${params.type.toUpperCase()}_${params.name}_${Date.now()}`,
     name: params.name,
@@ -262,7 +287,7 @@ async function saveContractInfo(params, deployResult) {
     deployedAt: new Date().toISOString(),
     transactionHash: deployResult.transactionHash,
     network: params.network || 'sepolia',
-    owner: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' // TODO: 実際のアドレスに変更
+    owner: ownerAddress // .envの秘密鍵から算出したアドレスを使用
   };
   
   contractsData.contracts.push(newContract);

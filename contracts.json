@@ -1,10 +1,10 @@
 {
   "contracts": [
     {
-      "id": "ERC20_My First Token_1752381463033",
-      "name": "My First Token",
-      "symbol": "MFT",
-      "contract_address": "0xd907E43D8E24211405B90aFfCd175D097308cc0D",
+      "id": "ERC20_My Second Token_1752382464454",
+      "name": "My Second Token",
+      "symbol": "MST",
+      "contract_address": "0xaf0b1eA2be2183e633BfAD72F05A1E7e1e44a74f",
       "abi": [
         {
           "inputs": [
@@ -452,10 +452,10 @@
         }
       ],
       "type": "ERC20",
-      "deployedAt": "2025-07-13T04:37:43.033Z",
+      "deployedAt": "2025-07-13T04:54:24.454Z",
       "transactionHash": "",
       "network": "sepolia",
-      "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      "owner": "0x0eA1b1C4260DF8b76087011905955e869220e11D"
     }
   ]
 }

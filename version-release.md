@@ -116,6 +116,7 @@ ERC20コントラクトデプロイに失敗しました: Command failed: npx ha
 以下のコマンドはうまくいくんじょが確認できているので、実装側に何か問題があることは間違いなさそう
 echo "y" | npx hardhat ignition deploy ignition/modules/SimpleERC20.ts --network sepolia --parameters ignition/parameters/erc20-1752376660512.json --verify
 
+
 コントラクト周りの実装を全体的に整理してほしい
 流れはこうなっているはず
 画面からの入力を受け取る
@@ -127,3 +128,10 @@ echo "y" | npx hardhat ignition deploy ignition/modules/SimpleERC20.ts --network
 出来上がったコントラクトの情報をcontracts.jsonに記載
 
 注意点：hardhatのdeploy.tsの基本的な実装はcontractの名前でdeployすることが多いのでテンプレートをコピーして作っていく場合に異なるcontractをdeployしてしまう可能性があるので、コントラクトの実装solidityファイルをどう作っているかは注意してください
+```
+
+### v1.7.0
+コントラクトのdeployには成功しましたが、ownerが0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266のaddressになっています。
+plan.mdの実装では、deployerである.envに記載された秘密鍵のaddressか外部接続したaddressになっているのが期待値のはずですが、そうはなっていません。
+改めて要件を認識し、何が問題でownerが異なっているのかを突き止めて修正してください。
+修正のゴールは私が再度contractを画面からデプロイした際にそのトークンがdeployに使った.envファイルの秘密鍵のaddressにmintされていることです
