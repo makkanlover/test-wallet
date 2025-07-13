@@ -5,7 +5,7 @@
 Web3ウォレットシステムは、ブロックチェーン技術を活用したウォレット管理・操作アプリケーションです。
 ERC20トークンやERC721 NFTのデプロイ、トランザクション送信、残高確認等の機能を提供します。
 
-![ウォレット情報画面](tests/visual/app.test.js-snapshots/wallet-info-page-chromium-linux.png)
+![ウォレット情報画面](docs/assets/wallet-info-page-chromium-linux.png)
 
 ## 主な機能
 
