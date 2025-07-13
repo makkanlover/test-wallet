@@ -1,73 +1,132 @@
 # Web3ウォレットシステム
 
-Web3ウォレット管理・操作アプリケーションです。Ethereum SepoliaテストネットとPolygon Amoyテストネットに対応しています。
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)
+![TypeScript](https://img.shields.io/badge/typescript-5.2.2-blue.svg)
 
-## 機能
+Web3技術を活用したウォレット管理・操作アプリケーション。ERC20/ERC721コントラクトのデプロイ、トランザクション管理、残高確認等の機能を提供します。
 
-- **ウォレット接続**: 環境変数からの秘密鍵による自動接続
-- **ネットワーク切り替え**: SepoliaとAmoy間での切り替えと残高確認
-- **トランザクション作成**: ネイティブトークン、ERC20、NFTの送信
-- **コントラクトデプロイ**: ERC20/ERC721コントラクトの作成
-- **レスポンシブUI**: デスクトップ・タブレット・モバイル対応
+## 🚀 主な機能
 
-## セットアップ
+- **ウォレット管理**: ローカル秘密鍵・外部ウォレット接続
+- **コントラクトデプロイ**: ERC20/ERC721の作成・検証
+- **トランザクション**: ネイティブ・トークン送金
+- **マルチチェーン対応**: Ethereum Sepolia、Polygon Amoy
+- **リアルタイム更新**: 残高・トランザクション状況の自動更新
 
-### 1. 依存関係のインストール
+## 🛠 技術スタック
+
+### フロントエンド
+- **React 18** - UIフレームワーク
+- **TypeScript** - 型安全性
+- **Redux Toolkit** - 状態管理
+- **Emotion** - CSS-in-JS
+- **React Hook Form** - フォーム管理
+- **Vite** - ビルドツール
+
+### バックエンド
+- **Node.js** - サーバーランタイム
+- **Express風サーバー** - カスタムHTTPサーバー
+- **Ethers.js** - ブロックチェーン操作
+
+### ブロックチェーン
+- **Hardhat** - 開発環境
+- **Hardhat Ignition** - デプロイ管理
+- **OpenZeppelin** - 標準コントラクト
+- **TypeChain** - コントラクト型生成
+
+### テスト・品質
+- **Vitest** - ユニットテスト
+- **Playwright** - E2Eテスト・ビジュアルテスト
+- **ESLint** - コード品質
+- **TypeScript** - 静的型チェック
+
+## 🏗 セットアップ
+
+### 1. 前提条件
+
+- Node.js 18.0.0以上
+- npm 8.0.0以上
+- Git
+
+### 2. インストール
 
 ```bash
-npm install
+# リポジトリクローン
+git clone <repository-url>
+cd web3-wallet-system
+
+# セットアップ（依存関係インストール + コントラクトコンパイル）
+npm run setup
 ```
 
-### 2. 環境変数の設定
+### 3. 環境変数設定
 
-`.env`ファイルを作成し、以下の内容を設定してください：
+`.env`ファイルを作成：
 
 ```env
-# プライベートキー（0xプレフィックスなしの64文字のHex文字列）
-PRIVATE_KEY=your_private_key_here
+# 秘密鍵（テストネット専用）
+PRIVATE_KEY=your_test_private_key
 
-# RPCエンドポイント
-ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID
-POLYGON_RPC_URL=https://amoy.infura.io/v3/YOUR_INFURA_PROJECT_ID
+# RPC エンドポイント
+ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
+POLYGON_RPC_URL=https://amoy.infura.io/v3/YOUR_PROJECT_ID
 
 # デフォルトネットワーク
 DEFAULT_NETWORK=sepolia
 
-# アプリケーション設定
-APP_NAME=Web3ウォレットシステム
-APP_VERSION=1.0.0
+# API キー
+ETHERSCAN_API_KEY=your_etherscan_api_key
+POLYGONSCAN_API_KEY=your_polygonscan_api_key
 ```
 
-**注意**: テスト用途でない場合は、`.env.example`を参考に適切な値を設定してください。
+⚠️ **セキュリティ注意**: テストネット専用の秘密鍵のみ使用してください。
 
-### 3. 開発サーバーの起動
+## 🚀 使用方法
+
+### 開発モード
 
 ```bash
+# フロントエンド開発サーバー（ホットリロード）
 npm run dev
+
+# バックエンドサーバー
+npm run server
 ```
 
-ブラウザで `http://localhost:5173` にアクセスしてください。
+### 本番モード
 
-## 利用可能なコマンド
+```bash
+# ビルド + サーバー起動
+npm start
 
-### 開発
-- `npm run dev` - 開発サーバーを起動
-- `npm run build` - プロダクションビルド
-- `npm run preview` - ビルド結果のプレビュー
+# サーバーのみ
+npm run server
+```
 
-### コード品質
-- `npm run typecheck` - TypeScriptの型チェック
-- `npm run lint` - ESLintによる静的解析
+### その他のコマンド
 
-### テスト
-- `npm run test` - 全テストの実行
-- `npm run test:unit` - ユニットテストのみ実行
-- `npm run test:watch` - ウォッチモードでテスト実行
+```bash
+# サーバー再起動
+npm run restart:linux    # Linux/Mac
+npm run restart:windows  # Windows
 
-### ブロックチェーン開発
-- `npx hardhat compile` - スマートコントラクトのコンパイル
-- `npx hardhat test` - Hardhatテストの実行
-- `npx hardhat run scripts/deploy.ts --network sepolia` - Sepoliaへのデプロイ
+# コード品質チェック
+npm run lint
+npm run typecheck
+
+# テスト実行
+npm test                 # ユニットテスト
+npm run test:e2e         # E2Eテスト
+npm run test:coverage    # カバレッジ
+
+# Hardhatコマンド
+npm run compile          # コントラクトコンパイル
+npm run deploy:sepolia   # Sepoliaにデプロイ
+
+# クリーンアップ
+npm run clean           # ビルド成果物削除
+```
 
 ## 対応ネットワーク
 

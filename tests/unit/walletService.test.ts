@@ -57,6 +57,10 @@ describe('WalletService', () => {
     });
 
     it('無効な秘密鍵でfalseが返される', () => {
+      (ethers.Wallet as any).mockImplementation(() => {
+        throw new Error('Invalid private key');
+      });
+      
       const result = walletService.validatePrivateKey('invalid-key');
       expect(result).toBe(false);
     });
