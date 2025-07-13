@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { deployContract, estimateDeployGas } from '../thunks/contractThunks'
+import { deployContract, estimateDeployGas, loadStoredContracts } from '../thunks/contractThunks'
+import { StoredContract } from '../services/contractStorageService'
 
 export interface ContractInfo {
   address: string
@@ -9,6 +10,10 @@ export interface ContractInfo {
   name: string
   symbol?: string
   decimals?: number
+  id?: string
+  deployedAt?: string
+  transactionHash?: string
+  owner?: string
 }
 
 export interface GasEstimate {
@@ -89,6 +94,21 @@ const contractSlice = createSlice({
       .addCase(estimateDeployGas.rejected, (state, action) => {
         state.error = action.payload as string
         state.gasEstimate = null
+      })
+      .addCase(loadStoredContracts.fulfilled, (state, action) => {
+        const storedContracts = action.payload as StoredContract[]
+        state.contracts = storedContracts.map(contract => ({
+          address: contract.contract_address,
+          abi: contract.abi,
+          network: contract.network,
+          type: contract.type.toLowerCase() as 'erc20' | 'erc721',
+          name: contract.name,
+          symbol: contract.symbol,
+          id: contract.id,
+          deployedAt: contract.deployedAt,
+          transactionHash: contract.transactionHash,
+          owner: contract.owner
+        }))
       })
   },
 })

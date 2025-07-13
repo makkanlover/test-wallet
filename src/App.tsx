@@ -1,7 +1,8 @@
 import { ThemeProvider } from '@emotion/react'
-import { useSelector } from 'react-redux'
-import { useState } from 'react'
-import { RootState } from '../actions/store'
+import { useSelector, useDispatch } from 'react-redux'
+import { useState, useEffect } from 'react'
+import { RootState, AppDispatch } from '../actions/store'
+import { loadStoredContracts } from '../actions/thunks/contractThunks'
 import { themes } from '../ui/themes'
 import Layout from '../ui/components/Layout'
 import ToastContainer from '../ui/components/ToastContainer'
@@ -10,9 +11,15 @@ import TransactionPage from '../ui/pages/TransactionPage'
 import ContractPage from '../ui/pages/ContractPage'
 
 function App() {
+  const dispatch = useDispatch<AppDispatch>()
   const currentTheme = useSelector((state: RootState) => state.settings.theme)
   const theme = themes[currentTheme]
   const [currentPage, setCurrentPage] = useState<'wallet' | 'transaction' | 'contract' | 'settings'>('wallet')
+
+  useEffect(() => {
+    // アプリ起動時にローカルストレージからコントラクト情報を読み込み
+    dispatch(loadStoredContracts())
+  }, [dispatch])
 
   const renderCurrentPage = () => {
     switch (currentPage) {

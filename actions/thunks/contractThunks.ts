@@ -1,5 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { ContractService, ContractDeployParams } from '../services/contractService'
+import { ContractStorageService } from '../services/contractStorageService'
 
 export const deployContract = createAsyncThunk(
   'contract/deploy',
@@ -33,6 +34,18 @@ export const estimateDeployGas = createAsyncThunk(
       return await contractService.estimateDeployGas(params)
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'ガス見積もりに失敗しました')
+    }
+  }
+)
+
+export const loadStoredContracts = createAsyncThunk(
+  'contract/loadStored',
+  async (_, { rejectWithValue }) => {
+    try {
+      const storageService = ContractStorageService.getInstance()
+      return storageService.getAllContracts()
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'コントラクト読み込みに失敗しました')
     }
   }
 )

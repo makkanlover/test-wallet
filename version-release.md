@@ -56,3 +56,74 @@ erc20トークンのTxにおいて、コントラクトアドレスが自由記�
 
 ### v1.5.0
 plan.mdを再度確認し、まだ開発が終わっていない部分の開発を続けてください 
+
+### v1.6.0
+以下の3回の指示を追加で加えています
+
+今実行中のシステムでerc20のコントラクトをアプリからデプロイしようとしている
+このとき、エラーとして「」と出ていて、コントラクトデプロイができない問題が発生しているので解消してください。
+なんとなくですが、私とあなたでcontractのdeployについて認識がずれている気がします
+contractをdeployしたあとにシステムにコントラクト情報を記載したファイルを残してほしいのは、erc20トークンの移転Tx作成時にaddressやabi (特にtransfedr)が必要な認識だからです。
+管理方法はお任せしますが、1つのファイルにこのアプリで建てたすべてのcontractの情報が集約されていて、それをアプリは参照している必要があります。
+一例ですが、jsonで以下のようにまとまっているのをイメージしています。
+```json
+conmtracts[
+    "a_contract" {
+        "name": "test",
+        "symbol": "TT",
+        "contract_address": "0xsdfsdfadf",
+        "abi": [
+            "hogehgoe":"hogehoge"
+        ],
+        "type": "ERC20"
+    } 
+]
+```
+```
+まず前提として、ここを参考にcontractのdeployにはhardhat ignitionを使用してほしい
+そして、deployと同時にverifyもしてほしい
+https://hardhat.org/ignition/docs/getting-started#overview
+また、deployしようとすると以下のように失敗する
+ガス見積もりに失敗しました: invalid BytesLike value (argument="value", value="ここは長いので省略", code=INVALID_ARGUMENT, version=6.15.0)
+これも直してほしい
+現状のcontract deployのアプリ構成を改めて整理したうえで、修正計画を立案し、それに沿って修正をして下さい。
+この修正のゴールを以下に定めます。
+① アプリ上で仮に以下の入力が行われたとしたという仮定の下、実際にcontractのdewploy,verifyに成功する
+トークン名：My First Token
+シンボル：MFT
+小数点桁数：18
+総供給量：1000000
+deployに使う秘密鍵は.envのものとする
+②deployに成功したcontractの情報がきちんとコントラクト情報ファイルに記載されていることが確認できる
+```
+```
+依然として、ガス見積もりに失敗しました: invalid BytesLike value (argument="value", value="ここは長いので省略", code=INVALID_ARGUMENT, version=6.15.0)のエラーが出ています。
+もしかすると私の使い方が悪い？今は、npm run startで起動した後、chromeでhttp://localhost:3000/にアクセスして使っている
+もし間違っていなければ、修正は完了していないので修正してください
+ガス代の見積もりに失敗したらcontractのdeployにも当然失敗するので、適当な値を返すのはやめてください
+```
+
+```
+deployに失敗した。
+ERC20コントラクトデプロイに失敗しました: Command failed: npx hardhat ignition deploy ignition/modules/SimpleERC20.ts --network sepolia --parameters /mnt/c/Users/aoyat/Downloads/claude-code/web3-wallet-system/ignition/parameters/erc20-1752378085453.json --verify
+サーバーが再起動されていないだけかもしれないので、確認してください
+また、.envファイルのETHERSCAN_API_KEYってフルパスじゃなくてapikey用のトークンだけでいいんだよね？
+```
+
+```
+やっぱりうまくいかない
+ERC20コントラクトデプロイに失敗しました: Command failed: npx hardhat ignition deploy ignition/modules/SimpleERC20.ts --network sepolia --parameters /mnt/c/Users/aoyat/Downloads/claude-code/web3-wallet-system/ignition/parameters/erc20-1752378973187.json --deployment-id erc20-my-first-token-1752378973191 --verify
+以下のコマンドはうまくいくんじょが確認できているので、実装側に何か問題があることは間違いなさそう
+echo "y" | npx hardhat ignition deploy ignition/modules/SimpleERC20.ts --network sepolia --parameters ignition/parameters/erc20-1752376660512.json --verify
+
+コントラクト周りの実装を全体的に整理してほしい
+流れはこうなっているはず
+画面からの入力を受け取る
+↓
+入力をもとにcontractのsolidityファイルを作成
+↓
+そのコントラクトをdeploy & verify
+↓
+出来上がったコントラクトの情報をcontracts.jsonに記載
+
+注意点：hardhatのdeploy.tsの基本的な実装はcontractの名前でdeployすることが多いのでテンプレートをコピーして作っていく場合に異なるcontractをdeployしてしまう可能性があるので、コントラクトの実装solidityファイルをどう作っているかは注意してください

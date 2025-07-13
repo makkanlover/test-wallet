@@ -39,8 +39,9 @@ const ContractPage: React.FC = () => {
       <div css={noteStyle(theme)}>
         <h4 css={noteTitle(theme)}>📋 使用方法</h4>
         <p css={noteText(theme)}>
-          コントラクトをデプロイする前に、「npx hardhat compile」でコントラクトをコンパイルしてください。
-          コンパイル完了後、ERC20やERC721トークンを作成できます。
+          ERC20やERC721トークンをブロックチェーンにデプロイできます。
+          ウォレットが接続されていることを確認し、フォームに必要な情報を入力してデプロイしてください。
+          デプロイには時間がかかる場合があります。
         </p>
       </div>
       
