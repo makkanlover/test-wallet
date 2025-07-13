@@ -15,11 +15,11 @@ describe('walletSlice', () => {
     address: null,
     balance: '0',
     network: {
-      id: 'goerli',
-      name: 'Ethereum Goerli',
-      rpcUrl: 'https://goerli.infura.io/v3/',
-      chainId: 5,
-      currency: 'GoerliETH'
+      id: 'sepolia',
+      name: 'Ethereum Sepolia',
+      rpcUrl: 'https://sepolia.infura.io/v3/test',
+      chainId: 11155111,
+      currency: 'SepoliaETH'
     },
     isConnected: false,
     connectionType: null,
@@ -45,10 +45,10 @@ describe('walletSlice', () => {
   });
 
   it('setNetworkでネットワークが変更される', () => {
-    const actual = walletReducer(initialState, setNetwork('mumbai'));
-    expect(actual.network?.id).toEqual('mumbai');
-    expect(actual.network?.name).toEqual('Polygon Mumbai');
-    expect(actual.network?.chainId).toEqual(80001);
+    const actual = walletReducer(initialState, setNetwork('amoy'));
+    expect(actual.network?.id).toEqual('amoy');
+    expect(actual.network?.name).toEqual('Polygon Amoy');
+    expect(actual.network?.chainId).toEqual(80002);
   });
 
   it('setConnectedで接続状態が設定される', () => {

@@ -32,7 +32,8 @@
       "Bash(apt-get install:*)",
       "Bash(kill:*)",
       "Bash(true)",
-      "Bash(source .env)"
+      "Bash(source .env)",
+      "Bash(npm test:*)"
     ],
     "deny": []
   }

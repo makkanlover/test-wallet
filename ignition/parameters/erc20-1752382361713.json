@@ -1,9 +1,0 @@
-{
-  "SimpleERC20": {
-    "name": "My Second Token",
-    "symbol": "MST",
-    "decimals": 18,
-    "totalSupply": "1000000",
-    "owner": "0x0eA1b1C4260DF8b76087011905955e869220e11D"
-  }
-}
