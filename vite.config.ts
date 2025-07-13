@@ -14,6 +14,7 @@ export default defineConfig({
   ],
   define: {
     global: 'globalThis',
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
   },
   build: {
     outDir: 'dist',
@@ -51,5 +52,8 @@ export default defineConfig({
       '@/contracts': path.resolve(__dirname, './contracts'),
       '@/tests': path.resolve(__dirname, './tests')
     }
+  },
+  optimizeDeps: {
+    exclude: ['fsevents']
   }
 })

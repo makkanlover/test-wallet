@@ -1,6 +1,8 @@
 import { ethers } from 'ethers'
 import { WalletService } from './walletService'
-import { HardhatService } from './hardhatService'
+import { getContractArtifact } from '../contracts/contractArtifacts'
+import { ContractStorageService } from './contractStorageService'
+import { DeployApiService, DeployApiParams } from './deployApiService'
 
 export interface ContractDeployParams {
   type: 'erc20' | 'erc721'
@@ -23,11 +25,13 @@ export interface DeployedContract {
 export class ContractService {
   private static instance: ContractService
   private walletService: WalletService
-  private hardhatService: HardhatService
+  private storageService: ContractStorageService
+  private deployApiService: DeployApiService
 
   constructor() {
     this.walletService = WalletService.getInstance()
-    this.hardhatService = HardhatService.getInstance()
+    this.storageService = ContractStorageService.getInstance()
+    this.deployApiService = DeployApiService.getInstance()
   }
 
   static getInstance(): ContractService {
@@ -38,106 +42,67 @@ export class ContractService {
   }
 
   async deployERC20Contract(params: ContractDeployParams): Promise<DeployedContract> {
-    const signer = this.walletService.getSigner()
-    if (!signer) {
-      throw new Error('ウォレットが接続されていません')
-    }
-
     try {
-      // コントラクトがコンパイルされているか確認
-      const isCompiled = await this.hardhatService.isContractCompiled('SimpleERC20')
-      if (!isCompiled) {
-        throw new Error('SimpleERC20コントラクトがコンパイルされていません。npx hardhat compile を実行してください。')
-      }
-
-      // artifactsからコントラクト情報を読み込み
-      const artifact = await this.hardhatService.loadContractArtifact('SimpleERC20')
-      
-      const decimals = params.decimals || 18
-      const totalSupply = ethers.parseUnits(params.totalSupply || "1000000", decimals)
-      const owner = await signer.getAddress()
-
-      // コントラクトファクトリを作成
-      const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer)
-      
-      // コントラクトをデプロイ
-      const contract = await factory.deploy(
-        params.name,
-        params.symbol,
-        decimals,
-        totalSupply,
-        owner
-      )
-
-      // デプロイを待機
-      await contract.waitForDeployment()
-      const address = await contract.getAddress()
-      const deployTransaction = contract.deploymentTransaction()
-      
-      if (!deployTransaction) {
-        throw new Error('デプロイトランザクションが見つかりません')
-      }
-
-      return {
-        address,
-        transactionHash: deployTransaction.hash,
+      // API経由でデプロイ
+      const deployParams: DeployApiParams = {
         type: 'erc20',
         name: params.name,
         symbol: params.symbol,
-        owner
+        decimals: params.decimals || 18,
+        totalSupply: params.totalSupply || '1000000',
+        network: 'sepolia', // TODO: 動的に取得
+        verify: true // verifyを有効にする
       }
+
+      const deployResult = await this.deployApiService.deployContract(deployParams)
+      
+      if (!deployResult.success) {
+        throw new Error(deployResult.error || 'デプロイに失敗しました')
+      }
+
+      const deployedContract: DeployedContract = {
+        address: deployResult.contractAddress,
+        transactionHash: deployResult.transactionHash,
+        type: 'erc20' as const,
+        name: params.name,
+        symbol: params.symbol,
+        owner: '' // デプロイAPIから取得する必要がある
+      }
+
+      return deployedContract
     } catch (error) {
       throw new Error(`ERC20コントラクトデプロイに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   async deployERC721Contract(params: ContractDeployParams): Promise<DeployedContract> {
-    const signer = this.walletService.getSigner()
-    if (!signer) {
-      throw new Error('ウォレットが接続されていません')
-    }
-
     try {
-      // コントラクトがコンパイルされているか確認
-      const isCompiled = await this.hardhatService.isContractCompiled('SimpleERC721')
-      if (!isCompiled) {
-        throw new Error('SimpleERC721コントラクトがコンパイルされていません。npx hardhat compile を実行してください。')
-      }
-
-      // artifactsからコントラクト情報を読み込み
-      const artifact = await this.hardhatService.loadContractArtifact('SimpleERC721')
-      
-      const owner = await signer.getAddress()
-      const baseURI = params.baseURI || 'https://example.com/metadata/'
-
-      // コントラクトファクトリを作成
-      const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer)
-      
-      // コントラクトをデプロイ
-      const contract = await factory.deploy(
-        params.name,
-        params.symbol,
-        baseURI,
-        owner
-      )
-
-      // デプロイを待機
-      await contract.waitForDeployment()
-      const address = await contract.getAddress()
-      const deployTransaction = contract.deploymentTransaction()
-      
-      if (!deployTransaction) {
-        throw new Error('デプロイトランザクションが見つかりません')
-      }
-
-      return {
-        address,
-        transactionHash: deployTransaction.hash,
+      // API経由でデプロイ
+      const deployParams: DeployApiParams = {
         type: 'erc721',
         name: params.name,
         symbol: params.symbol,
-        owner
+        baseURI: params.baseURI || 'https://example.com/metadata/',
+        network: 'sepolia', // TODO: 動的に取得
+        verify: true // verifyを有効にする
       }
+
+      const deployResult = await this.deployApiService.deployContract(deployParams)
+      
+      if (!deployResult.success) {
+        throw new Error(deployResult.error || 'デプロイに失敗しました')
+      }
+
+      const deployedContract: DeployedContract = {
+        address: deployResult.contractAddress,
+        transactionHash: deployResult.transactionHash,
+        type: 'erc721' as const,
+        name: params.name,
+        symbol: params.symbol,
+        owner: '' // デプロイAPIから取得する必要がある
+      }
+
+      return deployedContract
     } catch (error) {
       throw new Error(`ERC721コントラクトデプロイに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -148,76 +113,43 @@ export class ContractService {
     gasPrice: string
     estimatedFee: string
   }> {
-    const provider = this.walletService.getProvider()
-    const signer = this.walletService.getSigner()
+    // Hardhat Ignitionを使用する場合、ガス見積もりはHardhat側で行われる
+    // ここでは概算値を返すか、実際にdry-runを実行してガス見積もりを取得する
     
-    if (!provider || !signer) {
-      throw new Error('プロバイダーまたはウォレットが初期化されていません')
-    }
-
     try {
-      const contractName = params.type === 'erc20' ? 'SimpleERC20' : 'SimpleERC721'
-      
-      // コントラクトがコンパイルされているか確認
-      const isCompiled = await this.hardhatService.isContractCompiled(contractName)
-      if (!isCompiled) {
-        // コンパイルされていない場合は仮の値を返す
-        const gasLimit = ethers.getBigInt("500000")
-        const feeData = await provider.getFeeData()
-        const gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
-        
-        return {
-          gasLimit: gasLimit.toString(),
-          gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
-          estimatedFee: ethers.formatEther(gasLimit * gasPrice)
-        }
+      // API経由でガス見積もりを取得
+      const response = await fetch('http://localhost:3000/api/estimate-gas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: params.type,
+          name: params.name,
+          symbol: params.symbol,
+          decimals: params.decimals || 18,
+          totalSupply: params.totalSupply || '1000000',
+          baseURI: params.baseURI,
+          network: 'sepolia'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // artifactsからコントラクト情報を読み込み
-      const artifact = await this.hardhatService.loadContractArtifact(contractName)
-      const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer)
+      const result = await response.json();
       
-      let deployData: string
-      if (params.type === 'erc20') {
-        const decimals = params.decimals || 18
-        const totalSupply = ethers.parseUnits(params.totalSupply || "1000000", decimals)
-        const owner = await signer.getAddress()
-        
-        deployData = factory.interface.encodeDeploy([
-          params.name,
-          params.symbol,
-          decimals,
-          totalSupply,
-          owner
-        ])
-      } else {
-        const owner = await signer.getAddress()
-        const baseURI = params.baseURI || 'https://example.com/metadata/'
-        
-        deployData = factory.interface.encodeDeploy([
-          params.name,
-          params.symbol,
-          baseURI,
-          owner
-        ])
+      if (!result.success) {
+        throw new Error(result.error || 'ガス見積もりに失敗しました');
       }
-
-      // ガス見積もり
-      const gasLimit = await provider.estimateGas({
-        data: artifact.bytecode + deployData.slice(2),
-        from: await signer.getAddress()
-      })
-      
-      const feeData = await provider.getFeeData()
-      const gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
-      
-      const estimatedFee = ethers.formatEther(gasLimit * gasPrice)
 
       return {
-        gasLimit: gasLimit.toString(),
-        gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
-        estimatedFee
-      }
+        gasLimit: result.gasLimit,
+        gasPrice: result.gasPrice,
+        estimatedFee: result.estimatedFee
+      };
+      
     } catch (error) {
       throw new Error(`ガス見積もりに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -260,15 +192,24 @@ export class ContractService {
   }
 
   async getCompiledContracts(): Promise<string[]> {
-    return await this.hardhatService.getAllCompiledContracts()
+    // 利用可能なコントラクト一覧を返す
+    return ['SimpleERC20', 'SimpleERC721']
   }
 
-  async compileContracts(): Promise<void> {
-    try {
-      await this.hardhatService.compileContracts()
-    } catch (error) {
-      throw new Error(`コントラクトコンパイルに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
+  getDeployedContracts() {
+    return this.storageService.getAllContracts()
+  }
+
+  getDeployedContractsByType(type: 'ERC20' | 'ERC721') {
+    return this.storageService.getContractsByType(type)
+  }
+
+  getDeployedContractById(id: string) {
+    return this.storageService.getContractById(id)
+  }
+
+  getDeployedContractByAddress(address: string) {
+    return this.storageService.getContractByAddress(address)
   }
 
   private isValidURL(string: string): boolean {

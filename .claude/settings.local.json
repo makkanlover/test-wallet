@@ -29,7 +29,10 @@
       "Bash(npm run:*)",
       "Bash(ls:*)",
       "Bash(apt-get:*)",
-      "Bash(apt-get install:*)"
+      "Bash(apt-get install:*)",
+      "Bash(kill:*)",
+      "Bash(true)",
+      "Bash(source .env)"
     ],
     "deny": []
   }
