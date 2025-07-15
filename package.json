@@ -25,7 +25,7 @@
     "clean": "rm -rf dist artifacts cache ignition/deployments/erc20-* ignition/parameters/erc20-*.json",
     "clean:windows": "if exist dist rmdir /s /q dist && if exist artifacts rmdir /s /q artifacts && if exist cache rmdir /s /q cache",
     "setup": "npm install && npm run compile",
-    "postinstall": "npm run compile"
+    "postinstall": "node -e \"if (process.env.NODE_ENV !== 'production' && process.env.CI !== 'true') { require('child_process').execSync('npm run compile', { stdio: 'inherit' }); }\""
   },
   "dependencies": {
     "@emotion/css": "^11.11.2",

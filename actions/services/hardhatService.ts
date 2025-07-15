@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import { ethers } from 'ethers'
 
 export interface ContractArtifact {
   contractName: string

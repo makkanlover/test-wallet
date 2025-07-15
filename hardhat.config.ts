@@ -4,6 +4,9 @@ import "@nomicfoundation/hardhat-ignition-ethers";
 import * as dotenv from "dotenv";
 dotenv.config();
 
+// Default dummy private key for CI environments (never use in production)
+const DEFAULT_PRIVATE_KEY = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   networks: {
@@ -15,13 +18,13 @@ const config: HardhatUserConfig = {
       chainId: 31337
     },
     sepolia: {
-      url: process.env.ETHEREUM_RPC_URL || "https://sepolia.infura.io/v3/",
-      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY.replace(/^0x/, '')}`] : [],
+      url: process.env.ETHEREUM_RPC_URL || "https://sepolia.infura.io/v3/dummy",
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY.replace(/^0x/, '')}`] : [`0x${DEFAULT_PRIVATE_KEY}`],
       chainId: 11155111
     },
     amoy: {
-      url: process.env.POLYGON_RPC_URL || "https://amoy.infura.io/v3/",
-      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY.replace(/^0x/, '')}`] : [],
+      url: process.env.POLYGON_RPC_URL || "https://amoy.infura.io/v3/dummy",
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY.replace(/^0x/, '')}`] : [`0x${DEFAULT_PRIVATE_KEY}`],
       chainId: 80002
     },
   },
@@ -33,8 +36,8 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      sepolia: process.env.ETHERSCAN_API_KEY || "",
-      amoy: process.env.POLYGONSCAN_API_KEY || ""
+      sepolia: process.env.ETHERSCAN_API_KEY || "dummy",
+      amoy: process.env.POLYGONSCAN_API_KEY || "dummy"
     },
     customChains: [
       {

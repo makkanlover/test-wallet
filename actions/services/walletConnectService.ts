@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { UniversalProvider } from '@walletconnect/universal-provider';
-import { WalletConnectOptions, WalletConnectProvider } from '../../types/walletconnect';
+import { WalletConnectOptions } from '../../types/walletconnect';
 import { Network } from '../slices/walletSlice';
 
 export class WalletConnectService {

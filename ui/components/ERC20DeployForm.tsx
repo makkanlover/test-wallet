@@ -1,6 +1,5 @@
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { AppDispatch, RootState } from '../../actions/store'
@@ -37,7 +36,7 @@ const ERC20DeployForm: React.FC = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const result = await dispatch(deployContract({
+      await dispatch(deployContract({
         type: 'erc20',
         name: data.name,
         symbol: data.symbol,

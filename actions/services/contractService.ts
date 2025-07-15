@@ -1,6 +1,4 @@
-import { ethers } from 'ethers'
 import { WalletService } from './walletService'
-import { getContractArtifact } from '../contracts/contractArtifacts'
 import { ContractStorageService } from './contractStorageService'
 import { DeployApiService, DeployApiParams } from './deployApiService'
 
