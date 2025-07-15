@@ -1,6 +1,6 @@
+import React, { useEffect, useState } from 'react'
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useEffect, useState } from 'react'
 import { Theme } from '../themes'
 import { Toast as ToastType } from '../../actions/slices/toastSlice'
 
@@ -19,7 +19,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onRemove }) => {
     if (!toast.duration || toast.duration <= 0) return
 
     let startTime = Date.now()
-    let timer: NodeJS.Timeout
+    let timer: ReturnType<typeof setTimeout>
 
     const tick = () => {
       if (isPaused || isHovered) {

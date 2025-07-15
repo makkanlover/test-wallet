@@ -1,6 +1,6 @@
+import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import { useTheme } from '@emotion/react';
-import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { AppDispatch, RootState } from '../../actions/store';
@@ -89,7 +89,7 @@ const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({ isOpen, onC
     setShowPrivateKeyInput(walletType === 'local');
   };
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async () => {
     if (!selectedWallet) return;
     
     const wallet = walletConnections.find(w => w.type === selectedWallet);

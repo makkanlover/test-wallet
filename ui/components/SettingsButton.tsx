@@ -1,6 +1,6 @@
+import React, { useState } from 'react'
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../actions/store'
 import { setTheme } from '../../actions/slices/settingsSlice'

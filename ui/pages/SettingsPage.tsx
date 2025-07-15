@@ -1,6 +1,6 @@
+import React, { useState } from 'react'
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../actions/store'
 import { setTheme, setGasBufferMultiplier } from '../../actions/slices/settingsSlice'
@@ -243,7 +243,7 @@ const previewHeaderStyle = (targetTheme: Theme) => css`
   padding: ${targetTheme.spacing.sm};
 `
 
-const previewTitleStyle = (targetTheme: Theme) => css`
+const previewTitleStyle = () => css`
   color: white;
   font-weight: 600;
   font-size: 0.9rem;

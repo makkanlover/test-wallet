@@ -1,9 +1,9 @@
+import React, { useState } from 'react'
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../actions/store'
-import { updateBalance, disconnectWallet, connectExternalWallet } from '../../actions/thunks/walletThunks'
+import { updateBalance, disconnectWallet } from '../../actions/thunks/walletThunks'
 import { setNetwork } from '../../actions/slices/walletSlice'
 import { Theme } from '../themes'
 import { useToast } from '../hooks/useToast'
@@ -48,16 +48,6 @@ const WalletInfoPage: React.FC = () => {
     }
   }
 
-  const handleExternalWalletConnect = async () => {
-    if (!wallet.network) return
-    
-    try {
-      await dispatch(connectExternalWallet({ network: wallet.network }))
-      toast.showSuccess('外部ウォレットに接続しました')
-    } catch (error) {
-      toast.showError('外部ウォレット接続に失敗しました')
-    }
-  }
 
   const networks = [
     { id: 'sepolia', name: 'Ethereum Sepolia', currency: 'SepoliaETH' },

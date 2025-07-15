@@ -1,6 +1,6 @@
+import React, { useState } from 'react'
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { AppDispatch, RootState } from '../../actions/store'
@@ -23,7 +23,7 @@ const NFTTransactionForm: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [formData, setFormData] = useState<FormData | null>(null)
 
-  const { register, handleSubmit, formState: { errors }, watch, reset } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     defaultValues: {
       to: '',
       tokenId: '',
