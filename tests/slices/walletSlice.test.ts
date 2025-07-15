@@ -23,6 +23,7 @@ describe('walletSlice', () => {
     },
     isConnected: false,
     connectionType: null,
+    walletName: null,
     provider: null,
     isLoading: false,
     error: null,
@@ -54,10 +55,11 @@ describe('walletSlice', () => {
   it('setConnectedで接続状態が設定される', () => {
     const actual = walletReducer(
       initialState, 
-      setConnected({ connected: true, type: 'local' })
+      setConnected({ connected: true, type: 'local', walletName: 'Test Wallet' })
     );
     expect(actual.isConnected).toBe(true);
     expect(actual.connectionType).toEqual('local');
+    expect(actual.walletName).toEqual('Test Wallet');
   });
 
   it('setProviderでプロバイダーが設定される', () => {
@@ -84,6 +86,7 @@ describe('walletSlice', () => {
       balance: '1.5',
       isConnected: true,
       connectionType: 'local',
+      walletName: 'Test Wallet',
       provider: { test: 'provider' },
       error: 'some error'
     };
@@ -93,6 +96,7 @@ describe('walletSlice', () => {
     expect(actual.balance).toEqual('0');
     expect(actual.isConnected).toBe(false);
     expect(actual.connectionType).toBeNull();
+    expect(actual.walletName).toBeNull();
     expect(actual.provider).toBeNull();
     expect(actual.error).toBeNull();
   });

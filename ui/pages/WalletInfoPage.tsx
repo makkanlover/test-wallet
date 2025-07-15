@@ -7,14 +7,14 @@ import { updateBalance, disconnectWallet, connectExternalWallet } from '../../ac
 import { setNetwork } from '../../actions/slices/walletSlice'
 import { Theme } from '../themes'
 import { useToast } from '../hooks/useToast'
-import WalletConnectionModal from '../components/WalletConnectionModal'
+import WalletSelectionModal from '../components/WalletSelectionModal'
 
 const WalletInfoPage: React.FC = () => {
   const theme = useTheme() as Theme
   const dispatch = useDispatch<AppDispatch>()
   const wallet = useSelector((state: RootState) => state.wallet)
   const toast = useToast()
-  const [showConnectionModal, setShowConnectionModal] = useState(false)
+  const [showSelectionModal, setShowSelectionModal] = useState(false)
 
   const handleUpdateBalance = async () => {
     if (wallet.address) {
@@ -75,7 +75,16 @@ const WalletInfoPage: React.FC = () => {
         </div>
         {wallet.connectionType && (
           <div css={connectionTypeStyle(theme)}>
-            接続タイプ: {wallet.connectionType === 'local' ? 'ローカル' : '外部ウォレット'}
+            接続タイプ: {
+              wallet.connectionType === 'local' ? 'ローカル' : 
+              wallet.connectionType === 'walletconnect' ? 'WalletConnect' : 
+              '外部ウォレット'
+            }
+          </div>
+        )}
+        {wallet.walletName && (
+          <div css={walletNameStyle(theme)}>
+            ウォレット: {wallet.walletName}
           </div>
         )}
       </div>
@@ -125,22 +134,13 @@ const WalletInfoPage: React.FC = () => {
 
       <div css={actionsStyle}>
         {!wallet.isConnected ? (
-          <>
-            <button 
-              css={buttonStyle(theme, 'primary')}
-              onClick={() => setShowConnectionModal(true)}
-              disabled={wallet.isLoading}
-            >
-              {wallet.isLoading ? '接続中...' : 'ローカルウォレット接続'}
-            </button>
-            <button 
-              css={buttonStyle(theme, 'secondary')}
-              onClick={handleExternalWalletConnect}
-              disabled={wallet.isLoading}
-            >
-              {wallet.isLoading ? '接続中...' : '外部ウォレット接続'}
-            </button>
-          </>
+          <button 
+            css={buttonStyle(theme, 'primary')}
+            onClick={() => setShowSelectionModal(true)}
+            disabled={wallet.isLoading}
+          >
+            {wallet.isLoading ? '接続中...' : 'ウォレット接続'}
+          </button>
         ) : (
           <>
             <button 
@@ -161,9 +161,9 @@ const WalletInfoPage: React.FC = () => {
         )}
       </div>
 
-      <WalletConnectionModal 
-        isOpen={showConnectionModal}
-        onClose={() => setShowConnectionModal(false)}
+      <WalletSelectionModal 
+        isOpen={showSelectionModal}
+        onClose={() => setShowSelectionModal(false)}
       />
     </div>
   )
@@ -205,6 +205,13 @@ const connectionTypeStyle = (theme: Theme) => css`
   font-size: 0.9rem;
   color: ${theme.colors.textSecondary};
   margin-top: ${theme.spacing.sm};
+`
+
+const walletNameStyle = (theme: Theme) => css`
+  font-size: 0.9rem;
+  color: ${theme.colors.textSecondary};
+  margin-top: ${theme.spacing.xs};
+  font-weight: 500;
 `
 
 const addressStyle = (theme: Theme) => css`

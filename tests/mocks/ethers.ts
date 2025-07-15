@@ -27,6 +27,18 @@ export class MockWallet {
   provider: MockJsonRpcProvider;
 
   constructor(privateKey: string, provider?: MockJsonRpcProvider) {
+    // Validate private key format
+    if (!privateKey || typeof privateKey !== 'string') {
+      throw new Error('Invalid private key: must be a non-empty string');
+    }
+    
+    const cleanPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
+    
+    // Check if it's a valid hex string of proper length (64 characters + 0x prefix)
+    if (!/^0x[0-9a-fA-F]{64}$/.test(cleanPrivateKey)) {
+      throw new Error('Invalid private key: must be a valid hex string');
+    }
+    
     this.provider = provider || new MockJsonRpcProvider();
   }
 
@@ -63,12 +75,36 @@ export const mockEthers = {
     return BigInt(0);
   }),
   isAddress: vi.fn().mockImplementation((address: string) => {
-    return address && address.length === 42 && address.startsWith('0x');
+    if (!address || typeof address !== 'string') return false;
+    return address.length === 42 && address.startsWith('0x') && /^0x[0-9a-fA-F]{40}$/.test(address);
   }),
   Contract: vi.fn().mockImplementation(() => ({
     deployed: vi.fn().mockResolvedValue({}),
     deploy: vi.fn().mockResolvedValue({})
   }))
+};
+
+// WalletConnectServiceのモック
+export const MockWalletConnectService = {
+  getInstance: vi.fn().mockReturnValue({
+    initializeProvider: vi.fn().mockResolvedValue(undefined),
+    connect: vi.fn().mockResolvedValue({
+      address: MOCK_ADDRESS,
+      provider: {
+        getSigner: vi.fn().mockResolvedValue({
+          getAddress: vi.fn().mockResolvedValue(MOCK_ADDRESS)
+        })
+      },
+      walletName: 'WalletConnect Test'
+    }),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    isConnected: vi.fn().mockReturnValue(false),
+    getProvider: vi.fn().mockReturnValue(null),
+    getSigner: vi.fn().mockReturnValue(null),
+    getConnectedAccounts: vi.fn().mockReturnValue([]),
+    getConnectedChains: vi.fn().mockReturnValue([]),
+    switchChain: vi.fn().mockResolvedValue(undefined)
+  })
 };
 
 // vi.mockでethersライブラリ全体をモック
@@ -80,3 +116,8 @@ vi.mock('ethers', async () => {
     ethers: mockEthers
   };
 });
+
+// WalletConnectServiceのモック
+vi.mock('../../actions/services/walletConnectService', () => ({
+  WalletConnectService: MockWalletConnectService
+}));

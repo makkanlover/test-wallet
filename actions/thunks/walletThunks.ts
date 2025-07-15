@@ -4,16 +4,19 @@ import { Network } from '../slices/walletSlice'
 
 export const connectLocalWallet = createAsyncThunk(
   'wallet/connectLocal',
-  async ({ network }: { network: Network }, { rejectWithValue }) => {
+  async ({ network, privateKey }: { network: Network; privateKey?: string }, { rejectWithValue }) => {
     try {
       const walletService = WalletService.getInstance()
-      const result = await walletService.connectLocalWallet(network)
+      const result = privateKey 
+        ? await walletService.connectWithPrivateKey(privateKey, network)
+        : await walletService.connectLocalWallet(network)
       
       return {
         address: result.address,
         provider: result.provider,
         wallet: result.wallet,
-        connectionType: 'local' as const
+        connectionType: 'local' as const,
+        walletName: result.walletName
       }
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'ウォレット接続に失敗しました')
@@ -44,10 +47,30 @@ export const connectExternalWallet = createAsyncThunk(
       return {
         address: result.address,
         provider: result.provider,
-        connectionType: 'external' as const
+        connectionType: 'external' as const,
+        walletName: result.walletName
       }
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : '外部ウォレット接続に失敗しました')
+    }
+  }
+)
+
+export const connectWalletConnect = createAsyncThunk(
+  'wallet/connectWalletConnect',
+  async ({ network }: { network: Network }, { rejectWithValue }) => {
+    try {
+      const walletService = WalletService.getInstance()
+      const result = await walletService.connectWalletConnect(network)
+      
+      return {
+        address: result.address,
+        provider: result.provider,
+        connectionType: 'walletconnect' as const,
+        walletName: result.walletName
+      }
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'WalletConnect接続に失敗しました')
     }
   }
 )
@@ -57,7 +80,7 @@ export const disconnectWallet = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const walletService = WalletService.getInstance()
-      walletService.disconnect()
+      await walletService.disconnect()
       return true
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'ウォレット切断に失敗しました')

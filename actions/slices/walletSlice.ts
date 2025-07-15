@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { connectLocalWallet, connectExternalWallet, updateBalance, disconnectWallet } from '../thunks/walletThunks'
+import { connectLocalWallet, connectExternalWallet, connectWalletConnect, updateBalance, disconnectWallet } from '../thunks/walletThunks'
 import { getEnvVar } from '../utils/env'
 
 export interface Network {
@@ -15,7 +15,8 @@ export interface WalletState {
   balance: string
   network: Network | null
   isConnected: boolean
-  connectionType: 'local' | 'external' | null
+  connectionType: 'local' | 'external' | 'walletconnect' | null
+  walletName: string | null
   provider: any
   isLoading: boolean
   error: string | null
@@ -44,6 +45,7 @@ const initialState: WalletState = {
   network: networks[getEnvVar('DEFAULT_NETWORK', 'sepolia')],
   isConnected: false,
   connectionType: null,
+  walletName: null,
   provider: null,
   isLoading: false,
   error: null,
@@ -65,9 +67,10 @@ const walletSlice = createSlice({
         state.network = network
       }
     },
-    setConnected: (state, action: PayloadAction<{ connected: boolean; type: 'local' | 'external' | null }>) => {
+    setConnected: (state, action: PayloadAction<{ connected: boolean; type: 'local' | 'external' | 'walletconnect' | null; walletName?: string }>) => {
       state.isConnected = action.payload.connected
       state.connectionType = action.payload.type
+      state.walletName = action.payload.walletName || null
     },
     setProvider: (state, action: PayloadAction<any>) => {
       state.provider = action.payload
@@ -83,6 +86,7 @@ const walletSlice = createSlice({
       state.balance = '0'
       state.isConnected = false
       state.connectionType = null
+      state.walletName = null
       state.provider = null
       state.error = null
     },
@@ -99,6 +103,7 @@ const walletSlice = createSlice({
         state.provider = action.payload.provider
         state.isConnected = true
         state.connectionType = action.payload.connectionType
+        state.walletName = action.payload.walletName || null
         state.error = null
       })
       .addCase(connectLocalWallet.rejected, (state, action) => {
@@ -115,6 +120,7 @@ const walletSlice = createSlice({
         state.provider = action.payload.provider
         state.isConnected = true
         state.connectionType = action.payload.connectionType
+        state.walletName = action.payload.walletName || null
         state.error = null
       })
       .addCase(connectExternalWallet.rejected, (state, action) => {
@@ -127,11 +133,29 @@ const walletSlice = createSlice({
       .addCase(updateBalance.rejected, (state, action) => {
         state.error = action.payload as string
       })
+      .addCase(connectWalletConnect.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(connectWalletConnect.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.address = action.payload.address
+        state.provider = action.payload.provider
+        state.isConnected = true
+        state.connectionType = action.payload.connectionType
+        state.walletName = action.payload.walletName || null
+        state.error = null
+      })
+      .addCase(connectWalletConnect.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
       .addCase(disconnectWallet.fulfilled, (state) => {
         state.address = null
         state.balance = '0'
         state.isConnected = false
         state.connectionType = null
+        state.walletName = null
         state.provider = null
         state.error = null
       })

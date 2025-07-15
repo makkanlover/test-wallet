@@ -199,12 +199,27 @@ const ERC20DeployForm: React.FC = () => {
                 <span>ガス制限: {Number(contract.gasEstimate.gasLimit).toLocaleString()}</span>
               </div>
               <div css={gasItemStyle}>
-                <span>ガス価格: {contract.gasEstimate.gasPrice} Gwei</span>
+                <span>ガス価格 (基本): {contract.gasEstimate.gasPrice} Gwei</span>
               </div>
+              {contract.gasEstimate.actualGasPrice && (
+                <div css={gasItemStyle}>
+                  <span css={actualGasStyle(theme)}>ガス価格 (実際): {contract.gasEstimate.actualGasPrice} Gwei</span>
+                </div>
+              )}
               <div css={gasItemStyle}>
-                <span>推定手数料: {contract.gasEstimate.estimatedFee} ETH</span>
+                <span>推定手数料 (基本): {contract.gasEstimate.estimatedFee} ETH</span>
               </div>
+              {contract.gasEstimate.actualEstimatedFee && (
+                <div css={gasItemStyle}>
+                  <span css={actualGasStyle(theme)}>推定手数料 (実際): {contract.gasEstimate.actualEstimatedFee} ETH</span>
+                </div>
+              )}
             </div>
+            {contract.gasEstimate.actualGasPrice && (
+              <div css={gasNoteStyle(theme)}>
+                <small>実際の値にはガス倍率設定が適用されています</small>
+              </div>
+            )}
           </div>
         )}
 
@@ -408,6 +423,20 @@ const gasDetailsStyle = css`
 
 const gasItemStyle = css`
   font-size: 0.85rem;
+`
+
+const actualGasStyle = (theme: Theme) => css`
+  color: ${theme.colors.primary};
+  font-weight: 600;
+`
+
+const gasNoteStyle = (theme: Theme) => css`
+  margin-top: ${theme.spacing.sm};
+  padding: ${theme.spacing.xs};
+  background-color: ${theme.colors.primary}15;
+  border-radius: ${theme.borderRadius.sm};
+  color: ${theme.colors.textSecondary};
+  text-align: center;
 `
 
 const errorStyle = (theme: Theme) => css`

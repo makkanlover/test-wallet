@@ -14,6 +14,13 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
+  
+  expect: {
+    toHaveScreenshot: {
+      mode: 'only-on-failure',
+      threshold: 0.2,
+    },
+  },
 
   projects: [
     {

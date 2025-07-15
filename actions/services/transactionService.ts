@@ -13,6 +13,8 @@ export interface GasEstimate {
   gasLimit: string
   gasPrice: string
   estimatedFee: string
+  actualGasPrice?: string
+  actualEstimatedFee?: string
 }
 
 export class TransactionService {
@@ -30,27 +32,14 @@ export class TransactionService {
     return TransactionService.instance
   }
 
-  async sendNativeToken(to: string, amount: string): Promise<string> {
-    const wallet = this.walletService.getWallet()
-    if (!wallet) {
-      throw new Error('ウォレットが接続されていません')
-    }
-
-    try {
-      const tx = await wallet.sendTransaction({
-        to,
-        value: ethers.parseEther(amount)
-      })
-      
-      return tx.hash
-    } catch (error) {
-      throw new Error(`ネイティブトークン送信に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
+  async sendNativeToken(to: string, amount: string, gasBufferMultiplier: number = 1.0): Promise<string> {
+    return this.walletService.sendTransaction(to, amount, gasBufferMultiplier)
   }
 
-  async sendERC20Token(to: string, amount: string, contractAddress: string, decimals: number = 18): Promise<string> {
-    const wallet = this.walletService.getWallet()
-    if (!wallet) {
+  async sendERC20Token(to: string, amount: string, contractAddress: string, decimals: number = 18, gasBufferMultiplier: number = 1.0): Promise<string> {
+    const signer = this.walletService.getSigner()
+    const provider = this.walletService.getProvider()
+    if (!signer || !provider) {
       throw new Error('ウォレットが接続されていません')
     }
 
@@ -62,19 +51,31 @@ export class TransactionService {
     ]
 
     try {
-      const contract = new ethers.Contract(contractAddress, erc20Abi, wallet)
+      const contract = new ethers.Contract(contractAddress, erc20Abi, signer)
       const parsedAmount = ethers.parseUnits(amount, decimals)
       
-      const tx = await contract.transfer(to, parsedAmount)
+      // ガス見積もりを取得
+      const gasLimit = await contract.transfer.estimateGas(to, parsedAmount)
+      const feeData = await provider.getFeeData()
+      let gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
+      
+      // バッファ倍率を適用
+      gasPrice = BigInt(Math.floor(Number(gasPrice) * gasBufferMultiplier))
+      
+      const tx = await contract.transfer(to, parsedAmount, {
+        gasLimit: BigInt(Math.floor(Number(gasLimit) * 1.1)),
+        gasPrice
+      })
       return tx.hash
     } catch (error) {
       throw new Error(`ERC20トークン送信に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
-  async mintNFT(to: string, tokenId: string, contractAddress: string): Promise<string> {
-    const wallet = this.walletService.getWallet()
-    if (!wallet) {
+  async mintNFT(to: string, tokenId: string, contractAddress: string, gasBufferMultiplier: number = 1.0): Promise<string> {
+    const signer = this.walletService.getSigner()
+    const provider = this.walletService.getProvider()
+    if (!signer || !provider) {
       throw new Error('ウォレットが接続されていません')
     }
 
@@ -85,45 +86,31 @@ export class TransactionService {
     ]
 
     try {
-      const contract = new ethers.Contract(contractAddress, erc721Abi, wallet)
-      const tx = await contract.mint(to, tokenId)
+      const contract = new ethers.Contract(contractAddress, erc721Abi, signer)
+      
+      // ガス見積もりを取得
+      const gasLimit = await contract.mint.estimateGas(to, tokenId)
+      const feeData = await provider.getFeeData()
+      let gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
+      
+      // バッファ倍率を適用
+      gasPrice = BigInt(Math.floor(Number(gasPrice) * gasBufferMultiplier))
+      
+      const tx = await contract.mint(to, tokenId, {
+        gasLimit: BigInt(Math.floor(Number(gasLimit) * 1.1)),
+        gasPrice
+      })
       return tx.hash
     } catch (error) {
       throw new Error(`NFT発行に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
-  async estimateNativeGas(to: string, amount: string): Promise<GasEstimate> {
-    const provider = this.walletService.getProvider()
-    const wallet = this.walletService.getWallet()
-    
-    if (!provider || !wallet) {
-      throw new Error('ウォレットまたはプロバイダーが初期化されていません')
-    }
-
-    try {
-      const gasLimit = await provider.estimateGas({
-        to,
-        value: ethers.parseEther(amount),
-        from: await wallet.getAddress()
-      })
-
-      const feeData = await provider.getFeeData()
-      const gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
-      
-      const estimatedFee = ethers.formatEther(gasLimit * gasPrice)
-
-      return {
-        gasLimit: gasLimit.toString(),
-        gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
-        estimatedFee
-      }
-    } catch (error) {
-      throw new Error(`ガス見積もりに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
+  async estimateNativeGas(to: string, amount: string, gasBufferMultiplier: number = 1.0): Promise<GasEstimate> {
+    return this.walletService.estimateGas(to, amount, gasBufferMultiplier)
   }
 
-  async estimateERC20Gas(to: string, amount: string, contractAddress: string, decimals: number = 18): Promise<GasEstimate> {
+  async estimateERC20Gas(to: string, amount: string, contractAddress: string, decimals: number = 18, gasBufferMultiplier: number = 1.0): Promise<GasEstimate> {
     const provider = this.walletService.getProvider()
     const wallet = this.walletService.getWallet()
     
@@ -143,12 +130,20 @@ export class TransactionService {
       const feeData = await provider.getFeeData()
       const gasPrice = feeData.gasPrice || ethers.parseUnits('20', 'gwei')
       
+      // 基本の見積もり
       const estimatedFee = ethers.formatEther(gasLimit * gasPrice)
+      
+      // バッファ適用後の実際の値
+      const actualGasPrice = BigInt(Math.floor(Number(gasPrice) * gasBufferMultiplier))
+      const actualGasLimit = BigInt(Math.floor(Number(gasLimit) * 1.1))
+      const actualEstimatedFee = ethers.formatEther(actualGasLimit * actualGasPrice)
 
       return {
         gasLimit: gasLimit.toString(),
         gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
-        estimatedFee
+        estimatedFee,
+        actualGasPrice: ethers.formatUnits(actualGasPrice, 'gwei'),
+        actualEstimatedFee
       }
     } catch (error) {
       throw new Error(`ERC20ガス見積もりに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`)

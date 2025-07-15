@@ -9,6 +9,7 @@ import ToastContainer from '../ui/components/ToastContainer'
 import WalletInfoPage from '../ui/pages/WalletInfoPage'
 import TransactionPage from '../ui/pages/TransactionPage'
 import ContractPage from '../ui/pages/ContractPage'
+import SettingsPage from '../ui/pages/SettingsPage'
 
 function App() {
   const dispatch = useDispatch<AppDispatch>()
@@ -30,7 +31,7 @@ function App() {
       case 'contract':
         return <ContractPage />
       case 'settings':
-        return <div>設定画面（開発中）</div>
+        return <SettingsPage />
       default:
         return <WalletInfoPage />
     }

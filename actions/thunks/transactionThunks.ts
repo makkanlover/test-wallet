@@ -1,11 +1,15 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { TransactionService } from '../services/transactionService'
 import { TransactionHistory } from '../slices/transactionSlice'
+import { RootState } from '../store'
 
 export const sendNativeTransaction = createAsyncThunk(
   'transaction/sendNative',
-  async ({ to, amount }: { to: string; amount: string }, { rejectWithValue }) => {
+  async ({ to, amount }: { to: string; amount: string }, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState
+      const gasBufferMultiplier = state.settings.gasBufferMultiplier
+      
       const transactionService = TransactionService.getInstance()
       
       if (!transactionService.validateAddress(to)) {
@@ -16,7 +20,7 @@ export const sendNativeTransaction = createAsyncThunk(
         throw new Error('無効な金額です')
       }
 
-      const hash = await transactionService.sendNativeToken(to, amount)
+      const hash = await transactionService.sendNativeToken(to, amount, gasBufferMultiplier)
       
       const transaction: TransactionHistory = {
         hash,
@@ -49,8 +53,11 @@ export const sendERC20Transaction = createAsyncThunk(
     contractAddress: string
     tokenSymbol: string
     decimals?: number
-  }, { rejectWithValue }) => {
+  }, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState
+      const gasBufferMultiplier = state.settings.gasBufferMultiplier
+      
       const transactionService = TransactionService.getInstance()
       
       if (!transactionService.validateAddress(to)) {
@@ -65,7 +72,7 @@ export const sendERC20Transaction = createAsyncThunk(
         throw new Error('無効な金額です')
       }
 
-      const hash = await transactionService.sendERC20Token(to, amount, contractAddress, decimals)
+      const hash = await transactionService.sendERC20Token(to, amount, contractAddress, decimals, gasBufferMultiplier)
       
       const transaction: TransactionHistory = {
         hash,
@@ -95,8 +102,11 @@ export const mintNFTTransaction = createAsyncThunk(
     to: string
     tokenId: string
     contractAddress: string
-  }, { rejectWithValue }) => {
+  }, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState
+      const gasBufferMultiplier = state.settings.gasBufferMultiplier
+      
       const transactionService = TransactionService.getInstance()
       
       if (!transactionService.validateAddress(to)) {
@@ -107,7 +117,7 @@ export const mintNFTTransaction = createAsyncThunk(
         throw new Error('無効なコントラクトアドレスです')
       }
 
-      const hash = await transactionService.mintNFT(to, tokenId, contractAddress)
+      const hash = await transactionService.mintNFT(to, tokenId, contractAddress, gasBufferMultiplier)
       
       const transaction: TransactionHistory = {
         hash,
@@ -141,14 +151,17 @@ export const estimateGas = createAsyncThunk(
     type: 'native' | 'erc20'
     contractAddress?: string
     decimals?: number
-  }, { rejectWithValue }) => {
+  }, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState
+      const gasBufferMultiplier = state.settings.gasBufferMultiplier
+      
       const transactionService = TransactionService.getInstance()
       
       if (type === 'native') {
-        return await transactionService.estimateNativeGas(to, amount)
+        return await transactionService.estimateNativeGas(to, amount, gasBufferMultiplier)
       } else if (type === 'erc20' && contractAddress) {
-        return await transactionService.estimateERC20Gas(to, amount, contractAddress, decimals)
+        return await transactionService.estimateERC20Gas(to, amount, contractAddress, decimals, gasBufferMultiplier)
       } else {
         throw new Error('無効なトランザクションタイプです')
       }

@@ -10,19 +10,19 @@ export const useToast = () => {
     dispatch(addToast(toast))
   }
 
-  const showSuccess = (message: string, duration?: number) => {
+  const showSuccess = (message: string, duration: number = 4000) => {
     showToast({ message, type: 'success', duration })
   }
 
-  const showError = (message: string, duration?: number) => {
+  const showError = (message: string, duration: number = 6000) => {
     showToast({ message, type: 'error', duration })
   }
 
-  const showWarning = (message: string, duration?: number) => {
+  const showWarning = (message: string, duration: number = 5000) => {
     showToast({ message, type: 'warning', duration })
   }
 
-  const showInfo = (message: string, duration?: number) => {
+  const showInfo = (message: string, duration: number = 4000) => {
     showToast({ message, type: 'info', duration })
   }
 

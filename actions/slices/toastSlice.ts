@@ -27,7 +27,7 @@ const toastSlice = createSlice({
       const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
       const toast: Toast = {
         id,
-        duration: 5000, // デフォルト5秒
+        duration: 4000, // デフォルト4秒
         ...action.payload
       }
       state.toasts.push(toast)

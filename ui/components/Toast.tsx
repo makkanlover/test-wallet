@@ -1,6 +1,6 @@
 import { css } from '@emotion/react'
 import { useTheme } from '@emotion/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Theme } from '../themes'
 import { Toast as ToastType } from '../../actions/slices/toastSlice'
 
@@ -11,16 +11,39 @@ interface ToastProps {
 
 const Toast: React.FC<ToastProps> = ({ toast, onRemove }) => {
   const theme = useTheme() as Theme
+  const [isHovered, setIsHovered] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState(toast.duration || 5000)
 
   useEffect(() => {
-    if (toast.duration && toast.duration > 0) {
-      const timer = setTimeout(() => {
-        onRemove(toast.id)
-      }, toast.duration)
+    if (!toast.duration || toast.duration <= 0) return
 
-      return () => clearTimeout(timer)
+    let startTime = Date.now()
+    let timer: NodeJS.Timeout
+
+    const tick = () => {
+      if (isPaused || isHovered) {
+        startTime = Date.now()
+        timer = setTimeout(tick, 100)
+        return
+      }
+
+      const elapsed = Date.now() - startTime
+      const remaining = (toast.duration || 5000) - elapsed
+
+      setTimeRemaining(Math.max(0, remaining))
+
+      if (remaining <= 0) {
+        onRemove(toast.id)
+      } else {
+        timer = setTimeout(tick, 100)
+      }
     }
-  }, [toast.id, toast.duration, onRemove])
+
+    timer = setTimeout(tick, 100)
+
+    return () => clearTimeout(timer)
+  }, [toast.id, toast.duration, onRemove, isPaused, isHovered])
 
   const getIcon = () => {
     switch (toast.type) {
@@ -37,8 +60,16 @@ const Toast: React.FC<ToastProps> = ({ toast, onRemove }) => {
     }
   }
 
+  const progressPercentage = toast.duration && toast.duration > 0 
+    ? ((toast.duration - timeRemaining) / toast.duration) * 100
+    : 0
+
   return (
-    <div css={toastContainerStyle(theme, toast.type)}>
+    <div 
+      css={toastContainerStyle(theme, toast.type)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div css={toastContentStyle}>
         <div css={toastIconStyle}>
           {getIcon()}
@@ -46,14 +77,35 @@ const Toast: React.FC<ToastProps> = ({ toast, onRemove }) => {
         <div css={toastMessageStyle(theme)}>
           {toast.message}
         </div>
-        <button
-          css={closeButtonStyle(theme)}
-          onClick={() => onRemove(toast.id)}
-          aria-label="閉じる"
-        >
-          ×
-        </button>
+        <div css={toastControlsStyle}>
+          {toast.duration && toast.duration > 0 && (
+            <button
+              css={pauseButtonStyle(theme)}
+              onClick={() => setIsPaused(!isPaused)}
+              aria-label={isPaused ? '再生' : '一時停止'}
+              title={isPaused ? '自動消滅を再開' : '自動消滅を一時停止'}
+            >
+              {isPaused ? '▶️' : '⏸️'}
+            </button>
+          )}
+          <button
+            css={closeButtonStyle(theme)}
+            onClick={() => onRemove(toast.id)}
+            aria-label="閉じる"
+          >
+            ×
+          </button>
+        </div>
       </div>
+      
+      {toast.duration && toast.duration > 0 && (
+        <div css={progressBarContainerStyle(theme)}>
+          <div 
+            css={progressBarStyle(theme, toast.type)}
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
+      )}
       
       {toast.actions && toast.actions.length > 0 && (
         <div css={actionsStyle}>
@@ -134,6 +186,13 @@ const toastContentStyle = css`
   gap: 0.75rem;
 `
 
+const toastControlsStyle = css`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+`
+
 const toastIconStyle = css`
   font-size: 1.2rem;
   flex-shrink: 0;
@@ -168,6 +227,60 @@ const closeButtonStyle = (theme: Theme) => css`
     background-color: ${theme.colors.textSecondary}20;
   }
 `
+
+const pauseButtonStyle = (theme: Theme) => css`
+  background: none;
+  border: none;
+  color: ${theme.colors.textSecondary};
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 2px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: ${theme.colors.textSecondary}20;
+    transform: scale(1.1);
+  }
+`
+
+const progressBarContainerStyle = (theme: Theme) => css`
+  height: 3px;
+  background-color: ${theme.colors.border};
+  border-radius: 2px;
+  margin-top: 0.75rem;
+  overflow: hidden;
+`
+
+const progressBarStyle = (theme: Theme, type: ToastType['type']) => {
+  const getTypeColor = () => {
+    switch (type) {
+      case 'success':
+        return theme.colors.success
+      case 'error':
+        return theme.colors.error
+      case 'warning':
+        return theme.colors.warning
+      case 'info':
+      default:
+        return theme.colors.primary
+    }
+  }
+
+  return css`
+    height: 100%;
+    background-color: ${getTypeColor()};
+    transition: width 0.1s linear;
+    border-radius: 2px;
+  `
+}
 
 const actionsStyle = css`
   display: flex;

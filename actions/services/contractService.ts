@@ -41,7 +41,7 @@ export class ContractService {
     return ContractService.instance
   }
 
-  async deployERC20Contract(params: ContractDeployParams): Promise<DeployedContract> {
+  async deployERC20Contract(params: ContractDeployParams, gasBufferMultiplier: number = 1.0): Promise<DeployedContract> {
     try {
       // API経由でデプロイ
       const deployParams: DeployApiParams = {
@@ -51,7 +51,8 @@ export class ContractService {
         decimals: params.decimals || 18,
         totalSupply: params.totalSupply || '1000000',
         network: 'sepolia', // TODO: 動的に取得
-        verify: true // verifyを有効にする
+        verify: true, // verifyを有効にする
+        gasBufferMultiplier
       }
 
       const deployResult = await this.deployApiService.deployContract(deployParams)
@@ -75,7 +76,7 @@ export class ContractService {
     }
   }
 
-  async deployERC721Contract(params: ContractDeployParams): Promise<DeployedContract> {
+  async deployERC721Contract(params: ContractDeployParams, gasBufferMultiplier: number = 1.0): Promise<DeployedContract> {
     try {
       // API経由でデプロイ
       const deployParams: DeployApiParams = {
@@ -84,7 +85,8 @@ export class ContractService {
         symbol: params.symbol,
         baseURI: params.baseURI || 'https://example.com/metadata/',
         network: 'sepolia', // TODO: 動的に取得
-        verify: true // verifyを有効にする
+        verify: true, // verifyを有効にする
+        gasBufferMultiplier
       }
 
       const deployResult = await this.deployApiService.deployContract(deployParams)
@@ -108,10 +110,12 @@ export class ContractService {
     }
   }
 
-  async estimateDeployGas(params: ContractDeployParams): Promise<{
+  async estimateDeployGas(params: ContractDeployParams, gasBufferMultiplier: number = 1.0): Promise<{
     gasLimit: string
     gasPrice: string
     estimatedFee: string
+    actualGasPrice?: string
+    actualEstimatedFee?: string
   }> {
     // Hardhat Ignitionを使用する場合、ガス見積もりはHardhat側で行われる
     // ここでは概算値を返すか、実際にdry-runを実行してガス見積もりを取得する
@@ -144,10 +148,19 @@ export class ContractService {
         throw new Error(result.error || 'ガス見積もりに失敗しました');
       }
 
+      // バッファ適用後の実際の値を計算
+      const baseGasPrice = parseFloat(result.gasPrice)
+      const baseGasLimit = parseFloat(result.gasLimit)
+      const actualGasPrice = baseGasPrice * gasBufferMultiplier
+      const actualGasLimit = baseGasLimit * 1.1 // 10%のバッファ
+      const actualEstimatedFee = (actualGasPrice * actualGasLimit / 1e9).toFixed(6) // Gweiからetherに変換
+
       return {
         gasLimit: result.gasLimit,
         gasPrice: result.gasPrice,
-        estimatedFee: result.estimatedFee
+        estimatedFee: result.estimatedFee,
+        actualGasPrice: actualGasPrice.toFixed(2),
+        actualEstimatedFee
       };
       
     } catch (error) {

@@ -19,6 +19,8 @@ export interface GasEstimate {
   gasLimit: string
   gasPrice: string
   estimatedFee: string
+  actualGasPrice?: string
+  actualEstimatedFee?: string
 }
 
 export interface TokenInfo {

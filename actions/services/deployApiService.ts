@@ -9,6 +9,7 @@ export interface DeployApiParams {
   baseURI?: string;
   network: string;
   verify?: boolean;
+  gasBufferMultiplier?: number;
 }
 
 export interface DeployApiResult {

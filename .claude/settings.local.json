@@ -33,7 +33,11 @@
       "Bash(kill:*)",
       "Bash(true)",
       "Bash(source .env)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(move test-simple.test.ts tests/)",
+      "Bash(timeout 10 npm run server)",
+      "Bash(timeout 15 npm run test:e2e -- --update-snapshots --timeout=60000)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
