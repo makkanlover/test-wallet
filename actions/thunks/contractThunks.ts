@@ -50,7 +50,7 @@ export const loadStoredContracts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const storageService = ContractStorageService.getInstance()
-      return storageService.getAllContracts()
+      return await storageService.getAllContracts()
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'コントラクト読み込みに失敗しました')
     }

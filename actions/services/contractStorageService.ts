@@ -1,5 +1,4 @@
-// ブラウザ環境でのローカルストレージを使用したコントラクト情報管理
-
+// ブラウザ対応のコントラクト情報管理（LocalStorage使用）
 export interface StoredContract {
   id: string
   name: string
@@ -29,21 +28,61 @@ export class ContractStorageService {
     return ContractStorageService.instance
   }
 
-  private isClient(): boolean {
-    return typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+  static resetInstance(): void {
+    ContractStorageService.instance = null as any
   }
 
-  private readContracts(): ContractsData {
+  private async readContracts(): Promise<ContractsData> {
     try {
-      if (!this.isClient()) {
+      if (typeof window === 'undefined') {
+        // Node.js環境（テスト等）では空のデータを返す
         return { contracts: [] }
       }
       
-      const data = localStorage.getItem(CONTRACTS_STORAGE_KEY)
-      if (!data) {
-        return { contracts: [] }
+      // まずLocalStorageから読み込み
+      const localData = localStorage.getItem(CONTRACTS_STORAGE_KEY)
+      let localContracts: ContractsData = { contracts: [] }
+      
+      if (localData) {
+        try {
+          localContracts = JSON.parse(localData)
+        } catch (error) {
+          console.warn('LocalStorageのデータ読み込みエラー:', error)
+        }
       }
-      return JSON.parse(data)
+      
+      // サーバーからcontracts.jsonを読み込み
+      try {
+        const response = await fetch('/contracts.json')
+        if (response.ok) {
+          const serverContracts: ContractsData = await response.json()
+          
+          // サーバーのコントラクトとローカルのコントラクトをマージ
+          const mergedContracts = [...serverContracts.contracts]
+          
+          // ローカルのコントラクトでサーバーにないものを追加
+          localContracts.contracts.forEach(localContract => {
+            const exists = mergedContracts.find(serverContract => 
+              serverContract.contract_address.toLowerCase() === localContract.contract_address.toLowerCase()
+            )
+            if (!exists) {
+              mergedContracts.push(localContract)
+            }
+          })
+          
+          const mergedData = { contracts: mergedContracts }
+          
+          // マージした結果をLocalStorageに保存
+          this.writeContracts(mergedData)
+          
+          return mergedData
+        }
+      } catch (error) {
+        console.warn('サーバーからのコントラクト読み込みエラー:', error)
+      }
+      
+      // サーバーから読み込めない場合はLocalStorageのデータを返す
+      return localContracts
     } catch (error) {
       console.error('コントラクト情報の読み込みエラー:', error)
       return { contracts: [] }
@@ -52,8 +91,9 @@ export class ContractStorageService {
 
   private writeContracts(data: ContractsData): void {
     try {
-      if (!this.isClient()) {
-        throw new Error('ブラウザ環境ではありません')
+      if (typeof window === 'undefined') {
+        // Node.js環境（テスト等）では何もしない
+        return
       }
       
       localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(data))
@@ -63,8 +103,8 @@ export class ContractStorageService {
     }
   }
 
-  saveContract(contract: Omit<StoredContract, 'id' | 'deployedAt'>): StoredContract {
-    const data = this.readContracts()
+  async saveContract(contract: Omit<StoredContract, 'id' | 'deployedAt'>): Promise<StoredContract> {
+    const data = await this.readContracts()
     
     const newContract: StoredContract = {
       ...contract,
@@ -78,30 +118,30 @@ export class ContractStorageService {
     return newContract
   }
 
-  getAllContracts(): StoredContract[] {
-    const data = this.readContracts()
+  async getAllContracts(): Promise<StoredContract[]> {
+    const data = await this.readContracts()
     return data.contracts
   }
 
-  getContractsByType(type: 'ERC20' | 'ERC721'): StoredContract[] {
-    const data = this.readContracts()
+  async getContractsByType(type: 'ERC20' | 'ERC721'): Promise<StoredContract[]> {
+    const data = await this.readContracts()
     return data.contracts.filter(contract => contract.type === type)
   }
 
-  getContractById(id: string): StoredContract | null {
-    const data = this.readContracts()
+  async getContractById(id: string): Promise<StoredContract | null> {
+    const data = await this.readContracts()
     return data.contracts.find(contract => contract.id === id) || null
   }
 
-  getContractByAddress(address: string): StoredContract | null {
-    const data = this.readContracts()
+  async getContractByAddress(address: string): Promise<StoredContract | null> {
+    const data = await this.readContracts()
     return data.contracts.find(contract => 
       contract.contract_address.toLowerCase() === address.toLowerCase()
     ) || null
   }
 
-  deleteContract(id: string): boolean {
-    const data = this.readContracts()
+  async deleteContract(id: string): Promise<boolean> {
+    const data = await this.readContracts()
     const initialLength = data.contracts.length
     data.contracts = data.contracts.filter(contract => contract.id !== id)
     
@@ -112,7 +152,7 @@ export class ContractStorageService {
     return false
   }
 
-  clearAllContracts(): void {
+  async clearAllContracts(): Promise<void> {
     this.writeContracts({ contracts: [] })
   }
 }

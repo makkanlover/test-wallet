@@ -476,6 +476,29 @@ const server = http.createServer(async (req, res) => {
     pathname = '/index.html';
   }
 
+  // contracts.jsonファイルを提供
+  if (pathname === '/contracts.json') {
+    const contractsFilePath = path.join(__dirname, 'contracts.json');
+    fs.access(contractsFilePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ contracts: [] }));
+        return;
+      }
+
+      fs.readFile(contractsFilePath, (error, content) => {
+        if (error) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ contracts: [] }));
+        } else {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(content, 'utf-8');
+        }
+      });
+    });
+    return;
+  }
+
   // distディレクトリからファイルを提供
   const filePath = path.join(__dirname, 'dist', pathname);
 
